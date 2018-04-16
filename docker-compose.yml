@@ -1,0 +1,43 @@
+version: '3.5'
+
+services:
+
+  denzel:
+    build: ./denzel
+    image: denzel
+    container_name: denzel
+    ports:
+      - '8000:8000'
+    volumes:
+      - './denzel:/opt/denzel/app'
+    command: gunicorn -b 0.0.0.0:8000 app:app
+    environment:
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  celery:
+    image: denzel
+    volumes:
+      - './denzel:/opt/denzel/app'
+      - './denzel/logs:/opt/denzel/app/logs'
+    command: celery -A app.tasks worker --loglevel=info  --logfile=logs/celery.log
+    environment:
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - denzel
+      - redis
+
+  monitor:
+    image: denzel
+    ports:
+      - '5555:5555'
+    command: flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
+    depends_on:
+      - denzel
+      - redis
+
+  redis:
+    image: redis:3.2.11
