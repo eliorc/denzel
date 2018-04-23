@@ -1,9 +1,17 @@
 FROM python
 ENV PYTHONUNBUFFERED 1
 
+RUN mkdir -p /opt/denzel/app
+WORKDIR /opt/denzel/app
+COPY ./requirements.txt /opt/denzel/app/requirements.txt
+
+
 RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     PIP_INSTALL="pip --no-cache-dir install --upgrade" && \
     GIT_CLONE="git clone --depth 10" && \
+
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get update && \
 
 # ==================================================================
 # tools
@@ -19,40 +27,30 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         && \
 
 # ==================================================================
-# python
-# ------------------------------------------------------------------
-
-    $PIP_INSTALL \
-	setup-tools \
-	&& \
-    $PIP_INSTALL \
-	numpy \
-	scipy \
-	scikit-learn \
-	cython \
-	&& \
-
-# ==================================================================
 # falcon-api
 # ------------------------------------------------------------------
 
-    pip install --nobinary :all: falcon	&& \
     $PIP_INSTALL \
-    celery \
-	gunicorn \
-	flower \
-	redis \
-	&& \
+        cython \
+        --no-binary :all: falcon	\
+        ujson \
+        celery \
+        gunicorn \
+        flower \
+        requests \
+        redis && \
+
+# ==================================================================
+# user specific python installations
+# ------------------------------------------------------------------
+    $PIP_INSTALL -r requirements.txt
 
 # ==================================================================
 # config & cleanup
 # ------------------------------------------------------------------
 
-    ldconfig && \
+RUN ldconfig && \
     apt-get clean && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/*
-
-
-
 

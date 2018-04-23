@@ -1,4 +1,4 @@
-import json
+import ujson
 
 import falcon
 from celery.result import AsyncResult
@@ -9,7 +9,7 @@ from app.logic import verify_input, process
 # TODO - Support for batching
 # TODO - Support for partially bad input json. Now if one field is missing in one example, nothing will be predicted.
 
-INFO_FILE = '/opt/denzel/app/info.txt'
+INFO_FILE = './app/info.txt'
 
 class InfoResource(object):
 
@@ -23,13 +23,13 @@ class InfoResource(object):
         resp.body = info
 
 
-class StatusResouce(object):
+class StatusResource(object):
 
     def on_get(self, req, resp, task_id):
         task_result = AsyncResult(task_id)
         result = {'status': task_result.status, 'result': task_result.result}
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(result)
+        resp.body = ujson.dumps(result)
 
 
 class PredictResource(object):
@@ -39,7 +39,7 @@ class PredictResource(object):
         resp.status = falcon.HTTP_200  # This is the default status
 
         # TODO: DSG - Rewrite this to describe what is the expected input and output of the API
-        resp.body = ('\nThis is the PREDICT endpoint. \n'
+        resp.body = ('This is the PREDICT endoint. \n'
                      'Both requests and responses are served in JSON. \n'
                      '\n\n'
                      'INPUT: \n'
@@ -66,7 +66,7 @@ class PredictResource(object):
 
         # Parse to json
         try:
-            json_data = json.loads(raw_json.decode(), encoding='utf-8')
+            json_data = ujson.loads(raw_json.decode(), encoding='utf-8')
         except ValueError:
             raise falcon.HTTPError(falcon.HTTP_400,
                                    'Malformed JSON',
@@ -83,7 +83,7 @@ class PredictResource(object):
         try:
             resp.status = falcon.HTTP_200
             task = invoke_predict.delay(json_data)
-            resp.body = json.dumps({
+            resp.body = ujson.dumps({
                 'status': 'success',
                 'data': {
                     'task_id': task.id
@@ -100,7 +100,7 @@ app = falcon.API()
 # Resources are represented by long-lived class instances. Each Python class becomes a different "URL directory"
 info = InfoResource()
 predict = PredictResource()
-status = StatusResouce()
+status = StatusResource()
 
 # Routing
 app.add_route('/info', info)
