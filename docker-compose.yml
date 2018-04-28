@@ -9,7 +9,7 @@ services:
     ports:
       - '8000:8000'
     volumes:
-      - './denzel:/opt/denzel/app'
+      - './denzel:/opt/denzel'
     command: gunicorn -b 0.0.0.0:8000 app:app
     environment:
       - CELERY_BROKER=redis://redis:6379/0
@@ -20,8 +20,8 @@ services:
   celery:
     image: denzel
     volumes:
-      - './denzel:/opt/denzel/app'
-      - './denzel/logs:/opt/denzel/app/logs'
+      - './denzel:/opt/denzel'
+      - './denzel/logs:/opt/denzel/logs'
     command: celery -A app.tasks worker --loglevel=info  --logfile=logs/celery.log
     environment:
       - CELERY_BROKER=redis://redis:6379/0
@@ -30,14 +30,15 @@ services:
       - denzel
       - redis
 
-  monitor:
-    image: denzel
-    ports:
-      - '5555:5555'
-    command: flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
-    depends_on:
-      - denzel
-      - redis
-
   redis:
     image: redis:3.2.11
+
+#  TODO: Add monitoring using flower. Remember to add flower installation to the Dockerfile
+#  monitor:
+#    image: denzel
+#    ports:
+#      - '5555:5555'
+#    command: flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
+#    depends_on:
+#      - denzel
+#      - redis

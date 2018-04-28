@@ -1,10 +1,9 @@
 FROM python
 ENV PYTHONUNBUFFERED 1
 
-RUN mkdir -p /opt/denzel/app
-WORKDIR /opt/denzel/app
-COPY ./requirements.txt /opt/denzel/app/requirements.txt
-
+RUN mkdir -p /opt/denzel
+WORKDIR /opt/denzel
+COPY ./requirements.txt /opt/denzel/requirements.txt
 
 RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     PIP_INSTALL="pip --no-cache-dir install --upgrade" && \
@@ -32,17 +31,17 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 
     $PIP_INSTALL \
         cython \
-        --no-binary :all: falcon	\
+        --no-binary :all: falcon \
         ujson \
         celery \
         gunicorn \
-        flower \
         requests \
         redis && \
 
 # ==================================================================
 # user specific python installations
 # ------------------------------------------------------------------
+
     $PIP_INSTALL -r requirements.txt
 
 # ==================================================================
