@@ -23,10 +23,10 @@ class Model(celery.Task):
 @app.task(base=Model)
 def invoke_predict(json_data):
     # Preprocess data
-    data = process(json_data)
+    data = process(invoke_predict.model, json_data)
 
     # Preform predictions
-    result = [predict(invoke_predict.model, sample) for sample in data]
+    result = predict(invoke_predict.model, data)
 
     # Send prediction to callback_uri
     requests.post(url=json_data['callback_uri'],

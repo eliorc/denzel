@@ -35,6 +35,7 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         ujson \
         celery \
         gunicorn \
+	flower \
         requests \
         redis && \
 

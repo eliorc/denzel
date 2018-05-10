@@ -12,6 +12,7 @@ services:
       - './denzel:/opt/denzel'
     command: gunicorn -b 0.0.0.0:8000 app:app
     environment:
+      - GUNICORN_CMD_ARGS="--timeout=600"  # 10 minutes
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
     depends_on:
@@ -33,12 +34,13 @@ services:
   redis:
     image: redis:3.2.11
 
-#  TODO: Add monitoring using flower. Remember to add flower installation to the Dockerfile
-#  monitor:
-#    image: denzel
-#    ports:
-#      - '5555:5555'
-#    command: flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
-#    depends_on:
-#      - denzel
-#      - redis
+  monitor:
+    image: denzel
+    ports:
+      - '5555:5555'
+    volumes:
+      - './denzel:/opt/denzel'
+    command: flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
+    depends_on:
+      - denzel
+      - redis

@@ -66,7 +66,7 @@ class PredictResource(object):
 
         # Parse to json
         try:
-            json_data = ujson.loads(raw_json.decode(), encoding='utf-8')
+            json_data = ujson.loads(raw_json.decode())
         except ValueError:
             raise falcon.HTTPError(falcon.HTTP_400,
                                    'Malformed JSON',
@@ -106,3 +106,4 @@ status = StatusResource()
 app.add_route('/info', info)
 app.add_route('/predict', predict)
 app.add_route('/status/{task_id}', status)
+
