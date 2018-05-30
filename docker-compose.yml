@@ -5,7 +5,6 @@ services:
   denzel:
     build: ./denzel
     image: denzel
-    container_name: denzel
     ports:
       - '8000:8000'
     volumes:
