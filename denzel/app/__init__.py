@@ -106,4 +106,3 @@ status = StatusResource()
 app.add_route('/info', info)
 app.add_route('/predict', predict)
 app.add_route('/status/{task_id}', status)
-
