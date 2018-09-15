@@ -10,13 +10,15 @@ Prerequisites
 | Optionally, you can set up a `virtualenv`_.
 
 1. `Install docker`_
-2. (Optional) `Install virtualenv`_ and create one to work on.
+2. `Install docker-compose`_
+3. (Optional) `Install virtualenv`_ and create one to work on.
 
 .. note::
     | If opting for ``virtualenv`` understand that the deployment will not be using this env - it will only be used to install denzel on it.
     | The deployment itself will use the interpreter and packages installed into the containers (more on this further down).
 
 .. _`Install docker`: https://docs.docker.com/install/
+.. _`Install docker-compose`: https://docs.docker.com/compose/install/
 .. _`virtualenv`: https://virtualenv.pypa.io/en/stable/
 .. _`Install virtualenv`: https://virtualenv.pypa.io/en/stable/installation/
 
