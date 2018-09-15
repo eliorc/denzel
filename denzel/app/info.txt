@@ -1,9 +1,0 @@
-# =====================  DEPLOYMENT  ======================
-Denzel - model deployer:
-    Version: 0.1.0
-
-# ========================  MODEL  ========================
-
-Model information:
-    Version: 1.0.0
-    Description: ¯\_(ツ)_/¯

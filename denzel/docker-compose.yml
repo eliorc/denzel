@@ -2,13 +2,13 @@ version: '3.5'
 
 services:
 
-  denzel:
-    build: ./denzel
+  api:
+    build: ""
     image: denzel
     ports:
-      - '8000:8000'
+      - '${api_port}:8000'
     volumes:
-      - './denzel:/opt/denzel'
+      - '.:/opt/denzel'
     command: gunicorn -b 0.0.0.0:8000 app:app
     environment:
       - GUNICORN_CMD_ARGS="--timeout=600"  # 10 minutes
@@ -17,17 +17,17 @@ services:
     depends_on:
       - redis
 
-  celery:
+  denzel:
     image: denzel
     volumes:
-      - './denzel:/opt/denzel'
-      - './denzel/logs:/opt/denzel/logs'
-    command: celery -A app.tasks worker --loglevel=info  --logfile=logs/celery.log
+      - '.:/opt/denzel'
+      - './logs:/opt/denzel/logs'
+    command: celery -A app.tasks worker --loglevel=info --logfile=logs/worker.log
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
     depends_on:
-      - denzel
+      - api
       - redis
 
   redis:
@@ -36,10 +36,10 @@ services:
   monitor:
     image: denzel
     ports:
-      - '5555:5555'
+      - '${monitor_port}:5555'
     volumes:
-      - './denzel:/opt/denzel'
+      - '.:/opt/denzel'
     command: flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
     depends_on:
-      - denzel
+      - api
       - redis

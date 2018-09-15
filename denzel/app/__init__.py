@@ -3,13 +3,11 @@ import ujson
 import falcon
 from celery.result import AsyncResult
 from app.tasks import invoke_predict
-from app.logic import verify_input, process
+from app.logic.pipeline import verify_input
 
-# TODO - Fill in "Usage" section in app/info.txt
-# TODO - Support for batching
-# TODO - Support for partially bad input json. Now if one field is missing in one example, nothing will be predicted.
 
-INFO_FILE = './app/info.txt'
+INFO_FILE = './app/assets/info.txt'
+
 
 class InfoResource(object):
 
@@ -33,25 +31,6 @@ class StatusResource(object):
 
 
 class PredictResource(object):
-
-    def on_get(self, req, resp):
-        """Handles GET requests"""
-        resp.status = falcon.HTTP_200  # This is the default status
-
-        # TODO: DSG - Rewrite this to describe what is the expected input and output of the API
-        resp.body = ('This is the PREDICT endoint. \n'
-                     'Both requests and responses are served in JSON. \n'
-                     '\n\n'
-                     'INPUT: \n'
-                     '   "callback_uri": [string]           \n'     # String
-                     '   "data": {                          \n'     # Dictionary
-                     '      {"id": {                        \n'     # Dictionary            
-                     '          "sepal_length": [float],    \n'     # Feature
-                     '          "sepal_width": [float],     \n'     # Feature
-                     '          "petal_length": [float],    \n'     # Feature
-                     '          "petal_width": [float]      \n\n'   # Feature
-                     'OUTPUT: Prediction (Species)          \n'
-                     '   "Species": [string]                \n\n')  # String
 
     def on_post(self, req, resp):
         """Handles POST requests"""
@@ -94,10 +73,10 @@ class PredictResource(object):
                                    str(ex))
 
 
-# falcon.API instances are callable WSGI apps. Never change this.
+# Never change this.
 app = falcon.API()
 
-# Resources are represented by long-lived class instances. Each Python class becomes a different "URL directory"
+# Create resources
 info = InfoResource()
 predict = PredictResource()
 status = StatusResource()

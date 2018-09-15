@@ -2,7 +2,7 @@ import os
 
 import celery
 import requests
-from app.logic import process, load_model, predict
+from app.logic.pipeline import process, load_model, predict
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
