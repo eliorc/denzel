@@ -11,10 +11,9 @@ def cli():
 # -------- startproject --------
 @cli.command()
 @click.argument('name', type=str)
-@click.option('--gpu/--no-gpu', default=False, help="Support for NVIDIA GPU", show_default=True)
-def startproject(name, gpu):
+def startproject(name):
     """Builds the denzel project skeleton"""
-    commands.create_project(project_name=name, use_gpu=gpu)
+    commands.create_project(project_name=name)
 
 
 # -------- launch --------

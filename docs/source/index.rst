@@ -27,7 +27,7 @@ Showcase
 |
 | Here is an example of all the code necessary to deploy the Iris classifier from the :doc:`tutorial <tutorial>`.
 
-.. code-block:: python
+.. code-block:: python3
 
    import pickle
    import numpy as np

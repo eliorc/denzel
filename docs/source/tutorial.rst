@@ -1,7 +1,8 @@
 Tutorial
 ========
 
-A step by step tutorial for installing and launching a denzel deployment.
+| A step by step tutorial for installing and launching a denzel deployment.
+| For this tutorial we will train and deploy a Iris classifier, based on the Iris dataset.
 
 Prerequisites
 -------------
@@ -112,20 +113,22 @@ Starting a denzel Project
     |-- app
     |   |-- __init__.py
     |   |-- assets
-    |   |   `-- info.txt
+    |   |   `-- info.txt  <-------------------------- Deployment information
     |   |-- logic
     |   |   |-- __init__.py
-    |   |   |-- assets
-    |   |   `-- pipeline.py
+    |   |   `-- pipeline.py  <----------------------- Pipeline Methods
     |   `-- tasks.py
     |-- docker-compose.yml
     |-- logs
-    `-- requirements.txt
+    `-- requirements.txt  <-------------------------- Requirements
+
 
 | To make denzel fully operational, the only files we'll ever edit are:
 | 1. ``requirements.txt`` - Here we'll store all the pip packages our system needs
-| 2. ``app/assets/info.txt`` - Text file that contains information about our model and system
+| 2. ``app/assets/info.txt`` - Text file that contains deployment information about our model and system
 | 3. ``app/logic/pipeline.py`` - Here we will edit the body of the :doc:`pipeline`
+|
+| These steps, are exactly what this tutorial is all about.
 
 .. tip::
 
@@ -151,7 +154,7 @@ Requirements
     scipy
 
 
-| Take heed to the comment at the top of the file. Keep your system as lean as possible using light packages and operations.
+| Take heed to the comment at the top of the file. Keep your system as lean as possible using light packages and operations in the pipeline methods.
 
 .. note::
 
@@ -282,64 +285,17 @@ Pipeline Methods
 | Now is the time to fill the body of the :doc:`pipeline methods <pipeline>`. They are all stored inside ``app/logic/pipeline.py``.
 | Open this file in your favorite IDE as we will go through the implementation of these methods.
 
-^^^^^^^^^^^^^^
-``load_model``
-^^^^^^^^^^^^^^
-
-| :ref:`pipeline_load_model` is the method responsible for loading our saved model into memory and will keep it there as long as the worker lives.
-| So our model will be accessible for reading, we must copy it into the project directory, preferably to ``app/assets``
-| Once copied there, the assets directory should be as follows:
-
-.. code-block:: bash
-
-    $ cd app/assets/
-    $ ls -l
-
-    total 8
-    -rw-rw-r-- 1 creasy creasy 1623 Sep 14 14:35 info.txt
-    -rw-rw-r-- 1 creasy creasy 3552 Sep 14 08:55 iris_svc.pkl
-
-| Now if we'll look at ``app/logic/pipeline.py`` we will find the skeleton of :ref:`pipeline_load_model`.
-| Edit it so it loads the model and returns it, it should look something like:
-
-
-.. code-block:: python
-
-    import pickle
-
-    .
-    .
-
-    def load_model():
-        """
-        Load model and its assets to memory
-        :return: Model, will be used by the predict and process functions
-        """
-        with open('./app/assets/iris_svc.pkl', 'rb') as model_file:
-            loaded_model = pickle.load(model_file)
-
-        return loaded_model
-
-
-.. note::
-
-    | When using paths on code which is executed inside the containers (like the pipeline methods) the current directory is always the project main directory (where the ``requirements.txt`` is stored). Hence the saved model prefix above is ``./app/assets/...``.
-
-| When we edit the pipeline methods, the changes do not take effect until we restart the services.
-| As we just edited a pipeline method, we should run the :ref:`restart` command so the changes apply.
-| Navigate back into the project main directory and run ``denzel restart`` and after the services have restarted the changes will take effect.
-| To verify all went well you can examine the logs by running the :ref:`logs` command - if anything went wrong we will see it there.
-
-
 ^^^^^^^^^^^^^^^^
 ``verify_input``
 ^^^^^^^^^^^^^^^^
 
-| Now that we took care of the model loading, next we will implement the methods that actually apply to the request sent by the end user.
-| The :ref:`pipeline_verify_input` function is responsible for making sure the JSON data received matches the :ref:`interface we defined <api_interface>`.
+.. figure:: _static/request_flow_verify_input.png
+
+| When a user makes a request, the first pipeline method that the request will meet is :ref:`pipeline_verify_input`
+| The :ref:`pipeline_verify_input` method is responsible for making sure the JSON data received matches the :ref:`interface we defined <api_interface>`.
 | In order to do that, lets edit the :ref:`pipeline_verify_input` method to do just that:
 
-.. code-block:: python
+.. code-block:: python3
 
     .
     .
@@ -390,18 +346,86 @@ Pipeline Methods
     .. _`jsonschema`: https://github.com/Julian/jsonschema
 
 
+^^^^^^^^^^^^^^
+``load_model``
+^^^^^^^^^^^^^^
+
+.. figure:: _static/request_flow_load_model.png
+
+
+| :ref:`pipeline_load_model` is the method responsible for loading our saved model into memory and will keep it there as long as the worker lives.
+| This method is called when denzel starts up and is called only once - unlike :ref:`pipeline_verify_input`, :ref:`pipeline_process` and :ref:`pipeline_predict` which are called one time per request.
+| So our model will be accessible for reading, we must copy it into the project directory, preferably to ``app/assets``. Once copied there, the assets directory should be as follows:
+
+.. code-block:: bash
+
+    $ cd app/assets/
+    $ ls -l
+
+    total 8
+    -rw-rw-r-- 1 creasy creasy 1623 Sep 14 14:35 info.txt
+    -rw-rw-r-- 1 creasy creasy 3552 Sep 14 08:55 iris_svc.pkl
+
+| Now if we'll look at ``app/logic/pipeline.py`` we will find the skeleton of :ref:`pipeline_load_model`.
+| Edit it so it loads the model and returns it, it should look something like:
+
+
+.. code-block:: python3
+
+    import pickle
+
+    .
+    .
+
+    def load_model():
+        """
+        Load model and its assets to memory
+        :return: Model, will be used by the predict and process functions
+        """
+        with open('./app/assets/iris_svc.pkl', 'rb') as model_file:
+            loaded_model = pickle.load(model_file)
+
+        return loaded_model
+
+
+.. note::
+
+    | When using paths on code which is executed inside the containers (like the pipeline methods) the current directory is always the project main directory (where the ``requirements.txt`` is stored). Hence the saved model prefix above is ``./app/assets/...``.
+
+.. warning::
+
+    | When loading heavy models (unlike the tutorial classifier) that take long time to be read, you might want to wait for it to load before making any requests.
+    | To do that, use the :ref:`logworker` command, preferably with the ``--live`` flag and wait to see
+
+    .. code-block:: bash
+
+        [2018-09-18 13:36:34,685: INFO/MainProcess] Connected to redis://redis:6379/0
+        [2018-09-18 13:36:34,701: INFO/MainProcess] mingle: searching for neighbors
+        [2018-09-18 13:36:35,721: INFO/MainProcess] mingle: all alone
+        [2018-09-18 13:36:35,738: INFO/MainProcess] celery@6b8486b24ff1 ready.
+        [2018-09-18 13:36:38,489: INFO/MainProcess] Events of group {task} enabled by remote.
+
+    | Once the worker is ready, it will print out these lines.
+
+| When we edit the pipeline methods, the changes do not take effect until we restart the services.
+| As we just edited a pipeline method, we should run the :ref:`restart` command so the changes apply.
+| Navigate back into the project main directory and run ``denzel restart`` and after the services have restarted the changes will take effect.
+| To verify all went well you can examine the logs by running the :ref:`logs` command - if anything went wrong we will see it there (more about that in :ref:`debugging`).
+
 ^^^^^^^^^^^
 ``process``
 ^^^^^^^^^^^
+
+.. figure:: _static/request_flow_process.png
 
 | The output of the :ref:`pipeline_verify_input` and :ref:`pipeline_load_model` methods are the input to the :ref:`pipeline_process` method.
 | The model object itself is not always necessary, but it is there if you want to have some kind of loaded resource available for the processing, in this tutorial we won't use the model in this method.
 |
 | Now we are in possession of the JSON data, and we are already sure it has all the necessary data for making predictions.
-| Our model though, does not accept JSON, it expects four floats as input, so in this method we will turn the JSON data into model ready data.
+| Our model though, does not accept JSON, it expects four floats as input, so in this method we will turn the JSON data into model-ready data.
 | For our use case, we should edit the function to look as follows:
 
-.. code-block:: python
+.. code-block:: python3
 
     .
     .
@@ -439,11 +463,13 @@ Pipeline Methods
 ``predict``
 ^^^^^^^^^^^
 
+.. figure:: _static/request_flow_predict.png
+
 | The output of :ref:`pipeline_process` and :ref:`pipeline_load_model` are the input to the :ref:`pipeline_predict` method.
 | The final part of a request lifecycle is the actual prediction that will be sent back as response.
 | In our example in order to do that we would edit the method to look as follows:
 
-.. code-block:: python
+.. code-block:: python3
 
     def predict(model, data):
         """
@@ -474,7 +500,7 @@ Pipeline Methods
 | Don't forget, after all these changes we must run ``denzel restart`` so they will take effect.
 | For reference, the full ``pipeline.py`` file should look like this
 
-.. code-block:: python
+.. code-block:: python3
 
     import pickle
     import numpy as np
@@ -605,17 +631,13 @@ Using the API to Predict
 
         import requests
 
-        headers = {
-            'Content-Type': 'application/json',
-        }
-
         data = {
           "callback_uri": "http://waithook.com/?path=john_q",
           "data": {"a123": {"sepal-length": 4.6, "sepal-width": 3.6, "petal-length": 1.0, "petal-width": 0.2},
                    "b456": {"sepal-length": 6.5, "sepal-width": 3.2, "petal-length": 5.1, "petal-width": 2.0}}
         }
 
-        response = requests.post('http://localhost:8000/predict', headers=headers, data=data)
+        response = requests.post('http://localhost:8000/predict', json=data)
 
 
 | If the request has passed the :ref:`pipeline_verify_input` method, you should immediately get a response that looks something like:
@@ -624,7 +646,7 @@ Using the API to Predict
 
     {"status":"success","data":{"task_id":"19e39afe-0729-43a8-b4c5-6a60281157bc"}}
 
-| This means that the task has already entered the task queue and will next go through :ref:`pipeline_process` and :ref:`pipeline_predict`.
+| This means that the task has passed verification successfully, already entered the task queue and will next go through :ref:`pipeline_process` and :ref:`pipeline_predict`.
 | At any time, you can view the task status by sending a GET request to the :ref:`status_endpoint` endpoint.
 | If you examine waithook in your browser, you will see that a response was already sent back with the prediction, it should looks something like:
 
@@ -671,19 +693,13 @@ Monitoring
 
 .. _`Flower`: https://flower.readthedocs.io/en/latest/
 
+.. _debugging:
+
 Debugging
 ---------
 
 | Life is not all tutorials and sometime things go wrong.
 | Debugging exceptions is dependent of where the exception is originated at.
-
-^^^^^^^^^^^^^^^^^^^^^^^^^
-``load_model`` Exceptions
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-| If anything went wrong with the :ref:`pipeline_load_model` method, you will only able to see the traceback and exception on the logs.
-| Specifically, the denzel service log is where the model is loaded - to view the logs use the :ref:`logs` command.
-
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ``verify_input`` Exceptions
@@ -700,12 +716,22 @@ Debugging
      "description": "For each example all of the features [['sepal-length', 'sepal-width', 'petal-length', 'petal-width']] must be present"
     }
 
+^^^^^^^^^^^^^^^^^^^^^^^^^
+``load_model`` Exceptions
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+| If anything went wrong with the :ref:`pipeline_load_model` method, you will only able to see the traceback and exception on the logs.
+| Specifically, the denzel service log is where the model is loaded. In this case the exception can be found through the :ref:`logs` (to isoltate the relevant container, pass the ``--service denzel`` option) or :ref:`logworker` command.
+| Check them both as the location of the exception is dependent on its type.
+
+
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ``process`` & ``predict`` Exceptions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+| If something went wrong in these methods, it necessarily means you made a successful request and passed the :ref:`pipeline_verify_input` method and have received a ``"SUCCESS"`` status to your response with a task ID.
 | :ref:`pipeline_process` and :ref:`pipeline_predict` both get executed on the denzel container. If anything goes wrong inside of them it will be most likely only visible when querying for task status.
-| For example, if we would forget to import ``numpy as np`` even though it is in use in the :ref:`pipeline_process` method - we will get a ``"SUCCESS"`` response for our POST (because we passed the :ref:`pipeline_verify_input` function).
+| For example, if we would forget to import ``numpy as np`` even though it is in use in the :ref:`pipeline_process` method - we will get a ``"SUCCESS"`` response for our POST (because we passed the :ref:`pipeline_verify_input` method).
 | But the task will fail after entering the :ref:`pipeline_process` method - to see the reason, we should query the :ref:`status_endpoint` and we would see the following:
 
 .. code-block:: json
@@ -715,13 +741,10 @@ Debugging
      "result": {"args":["name 'np' is not defined"]}
     }
 
-| In general it is best to keep an eye on the logs (``denzel logs``) and examine statuses (through the API or through the monitoring UI) of tasks when looking for bugs.
-
-
 Deployment
 ----------
 
-| Since denzel is fully containerized it should work on any machine as long as it has docker and Python3 installed.
+| Since denzel is fully containerized it should work on any machine as long as it has docker, docker-compose and Python3 installed.
 | After completing all the necessary implementations for deployment covered in this tutorial it is best to check that the system can be launched from scratch.
 | To do that, we should :ref:`shutdown` while purging all images, and relaunch the project - don't worry no code is being deleted during shutdown.
 | Go to the main project directory and run the following:
@@ -763,3 +786,11 @@ Deployment
 | After the relaunching is done check again that all endpoints are functioning as expected - just to make sure.
 | If all is well your system is ready to be deployed wherever, on a local machine, a remote server or a docker supporting cloud service.
 | Do deploy it elsewhere simply copy all the contents of the project directory to the desired destination, :ref:`install denzel <install>` and call ``denzel launch`` from within that directory.
+
+
+Deleting
+--------
+
+| Deleting a denzel project is very simple.
+| To do so we must call the :ref:`shutdown` command, to remove all of the containers. Optionally we could pass the ``--purge`` flag to remove the underlying images.
+| Then delete the project directory and the denzel project is fully removed.

@@ -6,6 +6,18 @@ Introduction
 | To launch a service with API interface, task queue management and monitoring the only thing required from the denzel user is to fill four functions, and denzel will take care of the rest.
 | Those four functions are :func:`pipeline.load_model`, :func:`pipeline.verify_input`, :func:`pipeline.process` and :func:`pipeline.predict` (also called :doc:`pipeline`).
 
+
+Motivation
+++++++++++
+
+| Data scientists are not necessarily software engineers. In most companies' structure the data science team is separated from the other engineering teams.
+| In a standard workflow the data science team will get some data and a problem to solve. The team will then iterate until the point where they believe their solution is worthy and will want to test it out in production environment.
+| Once this point is reached it is not guaranteed that the engineering teams will have the availability to wrap the solution (model) with a deployment system.
+|
+| Denzel was created to fill this necessity, to create a framework where a data scientist could deploy a model, in a fast and reliable way.
+| Need to deploy? Denzel got your back.
+
+
 Architecture and Task Flow
 ++++++++++++++++++++++++++
 
@@ -23,8 +35,8 @@ Architecture and Task Flow
 | The worker, is always listening for tasks in the queue, which is inside the **Redis container**.
 | When an end-user sends a POST request to the ``/predict`` endpoint, the request will first go through the :func:`pipeline.verify_input` function to make sure the schema is as expected by denzel (defined by the data scientist).
 | If all is well, the request is turned into a task and is sent into the task queue and a response will be sent back to the user with a task ID, if not an error will be sent back.
-| As the task enters the queue, if the worker is not already busy it will consume the task. The task then goes through the :func:`pipeline.process` function, which accepts the output of the :func:`pipeline.verify_input` function and parses it to model ready data.
-| If processing is successful, the model ready data enters the :func:`pipeline.predict` function where all the model magic happens and then a response with the prediction will be sent to a ``callback_uri`` which was supplied by the end-user initially.
+| As the task enters the queue, if the worker is not already busy it will consume the task. The task then goes through the :func:`pipeline.process` function, which accepts the output of the :func:`pipeline.verify_input` function and parses it to model-ready data.
+| If processing is successful, the model-ready data enters the :func:`pipeline.predict` function where all the model magic happens and then a response with the prediction will be sent to a ``callback_uri`` which was supplied by the end-user initially.
 | At any time during the lifetime of a task, the end-user can view its status through the :ref:`status_endpoint` endpoint, or through the built-in UI exposed by the **Monitor container**.
 
 

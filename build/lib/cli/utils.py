@@ -38,11 +38,6 @@ def is_port_taken(port):
 
 
 @verify_location
-def is_gpu():
-    return 'Dockerfile.gpu'
-
-
-@verify_location
 def get_containers_names():
     project_name = get_project_name()
 

@@ -1,7 +1,7 @@
 import os
 import subprocess
 from itertools import compress
-from shutil import copytree, ignore_patterns
+from shutil import copytree
 
 import click
 import denzel
@@ -12,20 +12,15 @@ from . import config
 
 
 # -------- Command line calls --------
-def create_project(project_name, use_gpu):
+def create_project(project_name):
     # Validate project directory was not already created
     destination = './{}'.format(project_name)
     if os.path.exists(destination):
         raise click.ClickException('The file/directory "{}" already exists'.format(project_name))
 
-    # Use GPU?
-    dockerfile_to_ignore = 'Dockerfile' if use_gpu else 'Dockerfile.gpu'
-
-    ignore = ignore_patterns(dockerfile_to_ignore, '__pycache__')
-
     # Create project main directory
     source = denzel.__path__[0]
-    copytree(source, destination, ignore=ignore)
+    copytree(source, destination)
 
     # Create .env file
     with open('{}/.env'.format(destination),
