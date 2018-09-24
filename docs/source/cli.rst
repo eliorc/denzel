@@ -25,6 +25,7 @@ Command Line Interface (CLI)
       startproject  Builds the denzel project skeleton
       status        Examine status of services
       stop          Stop services
+      updatereqs    Update service according to requirements.txt
 
 
 | For command specific help you can follow a command with the ``--help`` flag (ex. ``denzel launch --help``)
@@ -50,6 +51,12 @@ Builds the denzel project skeleton
 .. py:attribute:: NAME
 
     Name of the project
+
+.. option:: --gpu|--no-gpu
+
+    Support for NVIDIA GPU
+
+    Default: ``--no-gpu``
 
 
 .. _launch:
@@ -225,3 +232,26 @@ Connect to service bash shell
     Target service
 
     Default: ``denzel``
+
+
+.. _updatereqs:
+
+--------------
+``updatereqs``
+--------------
+
+Usage: ``denzel updatereqs [OPTIONS]``
+
+Update service according to requirements.txt
+
+.. option:: --service [api|denzel|monitor]
+
+    Target service
+
+    Default: ``denzel``
+
+.. option:: --upgrade|--no-upgrade
+
+    Upgrade if already installed
+
+    Default: ``--no-upgrade``

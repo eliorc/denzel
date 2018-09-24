@@ -10,8 +10,20 @@ Prerequisites
 | Python 3 and docker are necessary for denzel.
 | Optionally, you can set up a `virtualenv`_.
 
-1. `Install docker`_
-2. `Install docker-compose`_
+1. `Install docker`_, verify its installation by running
+
+    .. code-block:: bash
+
+        $ docker --version
+        Docker version 18.06.1-ce, build e68fc7a
+
+2. `Install docker-compose`_ > 1.19.0, verify its installation by running
+
+    .. code-block:: bash
+
+        $ docker-compose --version
+        docker-compose version 1.22.0, build f46880fe
+
 3. (Optional) `Install virtualenv`_ and create one to work on.
 
 .. note::
@@ -156,12 +168,6 @@ Requirements
 
 | Take heed to the comment at the top of the file. Keep your system as lean as possible using light packages and operations in the pipeline methods.
 
-.. note::
-
-    | The packages specified in ``requirements.txt`` will be installed only once, on the first call of the :ref:`launch` command.
-    | If you wish to add packages later you can always use the :ref:`pinstall` command.
-
-
 .. _`api_interface`:
 
 Define Interface (API)
@@ -277,7 +283,18 @@ Launch (partial project)
 | At any time, you can stop all services using the :ref:`stop` command and start them again with the :ref:`start` command.
 | From this moment forward we shouldn't use the :ref:`launch` command as a project can and needs to be launched once.
 | If for any reason you wish to relaunch a project (for changing ports for example) you'd have to first :ref:`shutdown` and then :ref:`launch` again.
+|
+| Before moving on there is one last thing we should do. Since we have edited ``requirements.txt`` we should signal denzel to update the default packages it comes with.
+| You see when we launch a denzel project, only the basic packages are being installed - so to make our packages available we should call :ref:`updatereqs`:
 
+.. code-block:: bash
+
+    $ denzel updatereqs
+    Collecting scikit-learn (from -r requirements.txt (line 6))
+    .
+    .
+
+| After this command finishes we should have our packages installed and ready to use
 
 Pipeline Methods
 ----------------

@@ -1,10 +1,10 @@
 import subprocess
-from shutil import copyfile
 import re
 import os
 
 import docker
 import click
+import requests
 from . import config
 
 
@@ -24,7 +24,6 @@ def get_project_name():
         for line in env_file:
             if 'COMPOSE_PROJECT_NAME' in line:
                 name = line.split('=', maxsplit=1)[1].strip()
-                name = name.replace('_', '')
 
                 return name
 
@@ -39,13 +38,38 @@ def is_port_taken(port):
 
 @verify_location
 def is_gpu():
-    return 'Dockerfile.gpu'
+    return 'Dockerfile.gpu' in os.listdir(os.getcwd())
+
+
+@verify_location
+def read_env():
+    env_data = {}
+    with open('.env') as env_file:
+        for line in env_file:
+            if line:
+                key, val = line.split('=', maxsplit=1)
+                env_data[key] = val
+
+    return env_data
+
+
+@verify_location
+def get_worker_status():
+    try:
+        response = requests.get('http://localhost:{}/api/workers?refresh=1&status=1'.format(config.MONITOR_PORT))
+        if response.status_code != 200:
+            return {'all': config.WORKER_STATUS_DOWN}
+
+        return {worker: config.WORKER_STATUS_UP if up else config.WORKER_STATUS_DOWN
+                for worker, up in response.json().items()}
+
+    except requests.exceptions.ConnectionError:
+        return {'all': config.WORKER_STATUS_DOWN}
 
 
 @verify_location
 def get_containers_names():
     project_name = get_project_name()
-
     # Get output of docker-compose ps
     result = subprocess.run(['docker-compose', 'ps'], stdout=subprocess.PIPE).stdout.decode('utf-8').split('\n')
 
@@ -54,6 +78,7 @@ def get_containers_names():
     container_name_regex = re.compile('^{project_name}_({services})_[0-9]+'.format(
         project_name=project_name,
         services='|'.join(config.SERVICES)))
+
     for line in result:
 
         if not line:  # Skip empty lines
@@ -61,9 +86,10 @@ def get_containers_names():
 
         line = line.split()
         match = re.match(container_name_regex, line[0])
+
         if match:
             name = line[0][match.start():match.end()]
-            descriptor = name.split('_')[1]
+            descriptor = name.split('_')[-2]
             containers_names[descriptor] = name
 
     return containers_names

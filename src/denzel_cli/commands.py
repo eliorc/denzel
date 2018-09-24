@@ -1,7 +1,7 @@
 import os
 import subprocess
 from itertools import compress
-from shutil import copytree
+from shutil import copytree, ignore_patterns
 
 import click
 import denzel
@@ -12,15 +12,20 @@ from . import config
 
 
 # -------- Command line calls --------
-def create_project(project_name):
+def create_project(project_name, use_gpu):
     # Validate project directory was not already created
     destination = './{}'.format(project_name)
     if os.path.exists(destination):
-        raise click.ClickException('The file/directory "{}" already exists'.format(project_name))
+        raise click.ClickException('The directory "{}" already exists'.format(project_name))
+
+    # Use GPU?
+    dockerfile_to_ignore = 'Dockerfile' if use_gpu else 'Dockerfile.gpu'
+
+    ignore = ignore_patterns(dockerfile_to_ignore, '__pycache__')
 
     # Create project main directory
     source = denzel.__path__[0]
-    copytree(source, destination)
+    copytree(source, destination, ignore=ignore)
 
     # Create .env file
     with open('{}/.env'.format(destination),
@@ -28,13 +33,16 @@ def create_project(project_name):
         env_file.write('COMPOSE_PROJECT_NAME={}\n'.format(project_name))
         env_file.write('api_port={}\n'.format(config.API_PORT))
         env_file.write('monitor_port={}\n'.format(config.MONITOR_PORT))
+        env_file.write('image_name={}\n'.format(config.DENZEL_IMAGE_NAME + ('-gpu' if use_gpu else '')))
+        env_file.write('dockerfile={}\n'.format('Dockerfile' + ('.gpu' if use_gpu else '')))
+        env_file.write('runtime={}\n'.format('nvidia' if use_gpu else 'runc'))
+        env_file.write('redis_image_tag={}\n'.format(config.REDIS_IMAGE_TAG))
 
     click.echo('Successfully built {} project skeleton'.format(project_name))
 
 
 @utils.verify_location
 def launch(api_port, monitor_port):
-
     # Checks if project already launched
     if utils.get_containers_names():
         raise click.ClickException('Project already launched! Did you mean to run "denzel start"?')
@@ -52,9 +60,9 @@ def launch(api_port, monitor_port):
     with open('.env', 'w') as env_file:  # Write
         for data_line in env_data:
             if 'api_port' in data_line:
-                env_file.write('api_port={}\n'.format(api_port))            # API port
+                env_file.write('api_port={}\n'.format(api_port))  # API port
             elif 'monitor_port' in data_line:
-                env_file.write('monitor_port={}\n'.format(monitor_port))    # Monitor port
+                env_file.write('monitor_port={}\n'.format(monitor_port))  # Monitor port
             else:
                 env_file.write(data_line)
 
@@ -95,28 +103,34 @@ def status():
 
     # Haven't built yet
     if not down_services and not up_services:
-        click.echo('Services haven\'t been created yet. Did you forget to run "denzel launch"?')
-        return
-
-    # All up
-    if not down_services:
-        click.echo('All services up!')
+        click.echo('Services: Haven\'t been created yet. Did you forget to run "denzel launch"?')
         return
 
     # All down
     if not up_services:
-        click.echo('All services down. Did you forget to run "denzel start"?')
+        click.echo('Services: All down. Did you forget to run "denzel start"?')
         return
 
+    # All up
+    if not down_services:
+        click.echo('Services: All up!')
+
     # Some down, some up
-    click.echo(
-        'Services [{down_services}] are down. Check respective logs to see what went wrong ("denzel logs")'.format(
-            down_services=', '.join(down_services)))
+    else:
+        click.echo(
+            'Services: {down_services} are down. Check respective logs to see what went wrong ("denzel logs")'.format(
+                down_services=', '.join(down_services)))
+
+    # Worker status
+    if 'monitor' in up_services:
+        worker_status = utils.get_worker_status()
+        click.echo('Workers:')
+        for worker, status in worker_status.items():
+            click.echo('\t{} - {}'.format(worker, status))
 
 
 @utils.verify_location
 def pinstall(service, upgrade, req_append, packages):
-
     if not packages:
         raise click.ClickException('No packages supplied')
 
@@ -168,6 +182,34 @@ def pinstall(service, upgrade, req_append, packages):
 
         if successfully_installed:
             utils.append_to_requirements(packages=successfully_installed)
+
+
+@utils.verify_location
+def updatereqs(service, upgrade, restart_services=True):
+    # Get docker client
+    client = docker.from_env()
+
+    # Resolve service name to container
+    container_name = utils.get_containers_names()[service]
+
+    # Get running containers
+    containers = {c.name: c for c in client.containers.list()}
+
+    # Check target container is running
+    if container_name not in containers:
+        raise click.ClickException('Target container is down! Did you forget to run "denzel start"?')
+
+    # Run pip install
+    command = ['docker', 'exec', container_name, 'pip', 'install', '-r']
+    if upgrade:
+        command.append('--upgrade')
+
+    # Install
+    subprocess.run(command)
+
+    # Restart
+    if restart_services:
+        restart()
 
 
 @utils.verify_location

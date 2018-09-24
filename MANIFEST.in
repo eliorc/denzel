@@ -1,1 +1,9 @@
-recursive-include denzel *
+graft docs
+graft src
+graft tests
+
+include LICENSE
+include README.rst
+include CHANGELOG.rst
+
+global-exclude *.py[cod] __pycache__ *.so *.dylib

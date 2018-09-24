@@ -1,9 +1,12 @@
-FROM python
+FROM nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04
 ENV PYTHONUNBUFFERED 1
 
-FROM nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04
+RUN mkdir -p /opt/denzel
+WORKDIR /opt/denzel
+COPY ./requirements.txt /opt/denzel/requirements.txt
+
 RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
-    PIP_INSTALL="python -m pip --no-cache-dir install --upgrade" && \
+    PIP_INSTALL="pip --no-cache-dir install --upgrade" && \
     GIT_CLONE="git clone --depth 10" && \
 
     rm -rf /var/lib/apt/lists/* \
@@ -45,37 +48,22 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     ln -s /usr/bin/python3.6 /usr/local/bin/python3 && \
     ln -s /usr/bin/python3.6 /usr/local/bin/python && \
     $PIP_INSTALL \
-        setuptools \
-        && \
-    $PIP_INSTALL \
-        numpy \
-        scipy \
-        pandas \
-        scikit-learn \
-        matplotlib \
-        Cython \
-        && \
+        setuptools
 
 # ==================================================================
 # denzel python essentials
 # ------------------------------------------------------------------
 
-    $PIP_INSTALL \
+RUN pip --no-cache-dir install --upgrade \
         pip \
         cython \
         --no-binary :all: falcon \
         ujson \
         celery \
         gunicorn \
-	flower \
+	    flower \
         requests \
-        redis && \
-
-# ==================================================================
-# user specific python installations
-# ------------------------------------------------------------------
-
-    $PIP_INSTALL -r requirements.txt
+        redis
 
 # ==================================================================
 # config & cleanup

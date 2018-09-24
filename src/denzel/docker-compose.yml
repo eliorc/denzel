@@ -1,10 +1,12 @@
-version: '3.5'
+version: '2.3'
 
 services:
 
   api:
-    build: ""
-    image: denzel
+    build:
+      context: ""
+      dockerfile: '${dockerfile}'
+    image: '${image_name}'
     ports:
       - '${api_port}:8000'
     volumes:
@@ -18,11 +20,12 @@ services:
       - redis
 
   denzel:
-    image: denzel
+    image: '${image_name}'
+    runtime: '${runtime}'
     volumes:
       - '.:/opt/denzel'
       - './logs:/opt/denzel/logs'
-    command: celery -A app.tasks worker --loglevel=info --logfile=logs/worker.log
+    command: celery -A app.tasks worker --loglevel=info --logfile=logs/worker%i.log -n worker%${project_name}
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
@@ -31,10 +34,10 @@ services:
       - redis
 
   redis:
-    image: redis:3.2.11
+    image: '${redis_image_tag}'
 
   monitor:
-    image: denzel
+    image: '${image_name}'
     ports:
       - '${monitor_port}:5555'
     volumes:

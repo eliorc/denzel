@@ -1,4 +1,3 @@
-from .. import utils
 from .. import commands
 from .. import config
 
@@ -74,6 +73,17 @@ def status():
 def pinstall(service, upgrade, req_append, packages):
     """Install pip packages to running services"""
     commands.pinstall(service, upgrade, req_append, packages)
+
+
+# -------- updatereqs --------
+@cli.command()
+@click.option('--service', default='denzel', type=click.Choice(config.DENZEL_IMAGE_SERVICES),
+              help='Installation target service', show_default=True)
+@click.option('--upgrade/--no-upgrade', default=False,
+              help='Upgrade if already installed', show_default=True)
+def updatereqs(service, upgrade):
+    """Update service according to requirements.txt"""
+    commands.updatereqs(service, upgrade)
 
 
 # -------- logs --------

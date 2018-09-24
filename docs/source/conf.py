@@ -16,7 +16,7 @@ import os
 import sys
 import denzel
 
-sys.path.insert(0, os.path.abspath('../../denzel/app/logic'))
+sys.path.insert(0, os.path.abspath('../../src/denzel/app/logic'))
 
 # -- Project information -----------------------------------------------------
 
@@ -71,7 +71,7 @@ language = None
 exclude_patterns = []
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'github'
 
 
 # -- Options for HTML output -------------------------------------------------

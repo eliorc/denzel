@@ -1,10 +1,11 @@
 from setuptools import setup, find_packages
-import denzel
+from src import denzel
 
 setup(
     name='denzel',
     version=denzel.__version__,
-    packages=find_packages(),
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
     include_package_data=True,
     install_requires=[
         'Click',
@@ -12,6 +13,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        denzel=cli.scripts.cli:cli
+        denzel=denzel_cli.scripts.cli:cli
     ''',
 )

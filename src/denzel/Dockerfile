@@ -36,13 +36,7 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         gunicorn \
 	    flower \
         requests \
-        redis && \
-
-# ==================================================================
-# user specific python installations
-# ------------------------------------------------------------------
-
-    $PIP_INSTALL -r requirements.txt
+        redis
 
 # ==================================================================
 # config & cleanup
