@@ -148,11 +148,12 @@ def updatereqs():
 @utils.verify_location
 def logs(service, live):
     command = ['docker-compose', 'logs']
-    if service != 'all':
-        command.append(service)
 
     if live:
         command.append('-f')
+
+    if service != 'all':
+        command.append(service)
 
     subprocess.run(command)
 

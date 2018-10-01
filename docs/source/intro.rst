@@ -39,6 +39,10 @@ Architecture and Task Flow
 | If processing is successful, the model-ready data enters the :func:`pipeline.predict` function where all the model magic happens and then a response with the prediction will be sent to a ``callback_uri`` which was supplied by the end-user initially.
 | At any time during the lifetime of a task, the end-user can view its status through the :ref:`status_endpoint` endpoint, or through the built-in UI exposed by the **Monitor container**.
 
+.. note::
+
+    By default, denzel will run tasks on parallel, one task per core - for example if the host has 8 cores, that means 8 tasks can be executed in parallel.
+
 
 .. figure:: _static/request_flow.png
 
