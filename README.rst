@@ -11,7 +11,9 @@ Denzel Deployment Framework
 Documentation
 -------------
 
-Link to docs
+| `Denzel documentation`_
+
+.. _`Denzel documentation`: https://denzel.readthedocs.io/
 
 Showcase
 --------
