@@ -6,7 +6,7 @@ Denzel Deployment Framework
 
 .. warning::
 
-    Denzel only works only on Linux environment at the moment. Windows support will be added - keep yourself updated by checking the :ref:`development state <development_state>` for new features and support.
+    Denzel only works only on Linux environment at the moment. Windows support will be added - keep yourself updated by checking the development state at the bottom of this page for new features and support.
 
 Documentation
 -------------
