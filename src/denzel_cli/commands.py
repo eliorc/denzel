@@ -136,6 +136,7 @@ def status(live):
                 break
 
             sleep(1)
+            service_status = utils.get_containers_status()
 
 
 @utils.verify_location
