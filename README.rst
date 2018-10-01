@@ -122,11 +122,11 @@ Upcoming Features
 .. raw:: html
 
     <blockquote class="trello-card-compact">
-      <a href="https://trello.com/c/EXb6xs4c/5-windows-support-for-denzel-cli">Trello Card</a>
+      <a href="https://trello.com/c/EXb6xs4c/5-windows-support-for-denzel-cli">Windows support for denzel CLI</a>
     </blockquote>
     <script src="https://p.trellocdn.com/embed.min.js"></script>
 
     <blockquote class="trello-card-compact">
-      <a href="https://trello.com/c/xmmOmZuI/7-live-updating">Trello Card</a>
+      <a href="https://trello.com/c/xmmOmZuI/7-live-updating">Live updating</a>
     </blockquote>
     <script src="https://p.trellocdn.com/embed.min.js"></script>
