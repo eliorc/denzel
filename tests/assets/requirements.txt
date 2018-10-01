@@ -1,0 +1,9 @@
+# ---------------------------------------------------------------
+#                           USER GUIDE
+# Remember this has to be a lightweight service;
+# Keep that in mind when choosing which libraries to use.
+# ---------------------------------------------------------------
+scikit-learn
+numpy
+scipy
+

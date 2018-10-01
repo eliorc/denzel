@@ -8,15 +8,10 @@ Denzel Deployment Framework
 
     Denzel only works only on Linux environment at the moment. Windows support will be added - keep yourself updated by checking the :ref:`development state <development_state>` for new features and support.
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+Documentation
+-------------
 
-   intro
-   tutorial
-   pipeline
-   endpoints
-   cli
+Link to docs
 
 Showcase
 --------
@@ -28,7 +23,7 @@ Showcase
 | 3. Monitor the performance of your deployment through `Flower UI`_
 | 4. Fully containerized system so it could be deployed anywhere
 |
-| Here is an example of all the code necessary to deploy the Iris classifier from the :doc:`tutorial <tutorial>`.
+| Here is an example of all the code necessary to deploy the Iris classifier from the tutorial.
 
 .. code-block:: python3
 

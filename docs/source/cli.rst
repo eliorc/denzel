@@ -17,7 +17,6 @@ Command Line Interface (CLI)
       launch        Builds and starts all services
       logs          Show service logs
       logworker     Show worker log
-      pinstall      Install pip packages to running services
       restart       Restart services
       shell         Connect to service bash shell
       shutdown      Stops and deletes all services
@@ -40,13 +39,13 @@ Command Line Interface (CLI)
 
 .. _startproject:
 
------------------
-``startproject``
------------------
+------------
+startproject
+------------
 
 Usage: ``denzel startproject NAME``
 
-Builds the denzel project skeleton
+Builds the denzel project skeleton.
 
 .. py:attribute:: NAME
 
@@ -61,13 +60,13 @@ Builds the denzel project skeleton
 
 .. _launch:
 
-----------
-``launch``
-----------
+------
+launch
+------
 
 Usage: ``denzel launch [OPTIONS]``
 
-Builds and starts all services
+Builds and starts all services.
 
 .. option:: --api-monitor <INTEGER>
 
@@ -84,13 +83,13 @@ Builds and starts all services
 
 .. _shutdown:
 
-------------
-``shutdown``
-------------
+--------
+shutdown
+--------
 
 Usage: ``denzel shutdown [OPTIONS]``
 
-Stops and deletes all services
+Stops and deletes all services, if you wish only to stop use the :ref:`stop` command.
 
 .. option:: --purge|--no-purge
 
@@ -101,9 +100,9 @@ Stops and deletes all services
 
 .. _start:
 
----------
-``start``
----------
+-----
+start
+-----
 
 Usage: ``denzel start``
 
@@ -112,9 +111,9 @@ Start services
 
 .. _stop:
 
---------
-``stop``
---------
+----
+stop
+----
 
 Usage: ``denzel stop``
 
@@ -123,64 +122,36 @@ Stop services
 
 .. _restart:
 
------------
-``restart``
------------
+-------
+restart
+-------
 
 Usage: ``denzel restart``
 
-Restart services
+Restart services (equal to calling :ref:`stop` and then :ref:`start`).
 
 
 .. _status:
 
-----------
-``status``
-----------
+------
+status
+------
 
-Usage: ``denzel status``
+Usage: ``denzel status [OPTIONS]``
 
-Examine status of services
+Examine status of services and worker. Use this to monitor the status of your project.
 
+.. option:: --live|--no-live
 
-.. _pinstall:
+    Live status view
 
-------------
-``pinstall``
-------------
-
-Usage: ``denzel pinstall [OPTIONS] [PACKAGES]``
-
-Install pip packages to running services
-
-.. option:: --service [api|denzel|monitor]
-
-    Target service
-
-    Default: ``denzel``
-
-.. option:: --upgrade|--no-upgrade
-
-    Upgrade if already installed
-
-    Default: ``--no-upgrade``
-
-.. option:: --req-append|--no-req-append
-
-    Append to requirements.txt file
-
-    Default: ``--req-append``
-
-.. py:attribute:: PACKAGES
-
-    Space separated pip packages
-
+    Default: ``--no-live``
 
 .. _logs:
 
---------
-``logs``
---------
+----
+logs
+----
 
 Usage: ``denzel logs [OPTIONS]``
 
@@ -202,9 +173,9 @@ Show service logs
 
 .. _logworker:
 
--------------
-``logworker``
--------------
+---------
+logworker
+---------
 
 Usage: ``denzel logworker [OPTIONS]``
 
@@ -219,13 +190,13 @@ Show worker log
 
 .. _shell:
 
----------
-``shell``
----------
+-----
+shell
+-----
 
 Usage: ``denzel shell [OPTIONS]``
 
-Connect to service bash shell
+Connect to service bash shell. This is only for advanced usage, shouldn't be used in standard scenarios.
 
 .. option:: --service [api|denzel|monitor|redis]
 
@@ -236,22 +207,12 @@ Connect to service bash shell
 
 .. _updatereqs:
 
---------------
-``updatereqs``
---------------
+----------
+updatereqs
+----------
 
-Usage: ``denzel updatereqs [OPTIONS]``
+Usage: ``denzel updatereqs``
 
-Update service according to requirements.txt
+Update services according to ``requirements.txt``. This command always uses the pip ``--upgrade`` flag, so requirements will always be updated to the latest version.
+If you wish to install a specific version, specify it in the ``requirements.txt`` file. This command will initiate a restart so updates will apply.
 
-.. option:: --service [api|denzel|monitor]
-
-    Target service
-
-    Default: ``denzel``
-
-.. option:: --upgrade|--no-upgrade
-
-    Upgrade if already installed
-
-    Default: ``--no-upgrade``

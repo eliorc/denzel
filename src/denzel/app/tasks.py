@@ -13,7 +13,13 @@ app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 class Model(celery.Task):
 
     def __init__(self):
+        with open('.worker_loading', 'a'):
+            pass
+
         self._model = load_model()
+
+        if os.path.exists('.worker_loading'):  # Needed because concurrent workers will retry to remove
+            os.remove('.worker_loading')
 
     @property
     def model(self):

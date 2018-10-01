@@ -1,11 +1,11 @@
 import os
 import subprocess
-from itertools import compress
+from contextlib import suppress
 from shutil import copytree, ignore_patterns
+from time import sleep
 
 import click
 import denzel
-import docker
 
 from . import utils
 from . import config
@@ -34,11 +34,14 @@ def create_project(project_name, use_gpu):
         env_file.write('api_port={}\n'.format(config.API_PORT))
         env_file.write('monitor_port={}\n'.format(config.MONITOR_PORT))
         env_file.write('image_name={}\n'.format(config.DENZEL_IMAGE_NAME + ('-gpu' if use_gpu else '')))
+        env_file.write('image_tag={}\n'.format(config.DENZEL_IMAGE_TAG))
         env_file.write('dockerfile={}\n'.format('Dockerfile' + ('.gpu' if use_gpu else '')))
         env_file.write('runtime={}\n'.format('nvidia' if use_gpu else 'runc'))
         env_file.write('redis_image_tag={}\n'.format(config.REDIS_IMAGE_TAG))
 
-    click.echo('Successfully built {} project skeleton'.format(project_name))
+    click.echo('Successfully built ', nl=False)
+    click.secho(project_name, fg=config.Colors.DESCRIPTOR.value, nl=False)
+    click.echo(' project skeleton')
 
 
 @utils.verify_location
@@ -66,8 +69,11 @@ def launch(api_port, monitor_port):
             else:
                 env_file.write(data_line)
 
-    command = ['docker-compose', 'up', '-d', '--no-recreate']
-    subprocess.run(command)
+    # Create temporary file for the building stage to be deleted by the startup scripts
+    with utils.set_status(config.Status.BUILDING, remove=False):
+        command = ['docker-compose', 'up', '-d', '--no-recreate']
+        subprocess.run(command)
+
 
 
 @utils.verify_location
@@ -98,117 +104,44 @@ def restart():
 
 
 @utils.verify_location
-def status():
-    up_services, down_services = utils.get_containers_status()
+def status(live):
+    service_status = utils.get_containers_status()
 
     # Haven't built yet
-    if not down_services and not up_services:
-        click.echo('Services: Haven\'t been created yet. Did you forget to run "denzel launch"?')
+    if not service_status[config.Status.DOWN] and not service_status[config.Status.UP]:
+        click.echo('Haven\'t been created yet. Did you forget to run "denzel launch"?')
         return
 
-    # All down
-    if not up_services:
-        click.echo('Services: All down. Did you forget to run "denzel start"?')
-        return
+    with suppress(KeyboardInterrupt):
+        while True:
+            # Clear screen for live sessions
+            if live:
+                click.clear()
 
-    # All up
-    if not down_services:
-        click.echo('Services: All up!')
+            click.echo('Services:')
+            for status, services in service_status.items():
+                if services:
+                    for service in services:
+                        click.echo('\t{} - '.format(service), nl=False)
+                        click.secho(status.value, fg=utils.status_to_color(status))
 
-    # Some down, some up
-    else:
-        click.echo(
-            'Services: {down_services} are down. Check respective logs to see what went wrong ("denzel logs")'.format(
-                down_services=', '.join(down_services)))
+            if 'monitor' in service_status[config.Status.UP]:
+                worker_status = utils.get_worker_status()
 
-    # Worker status
-    if 'monitor' in up_services:
-        worker_status = utils.get_worker_status()
-        click.echo('Workers:')
-        for worker, status in worker_status.items():
-            click.echo('\t{} - {}'.format(worker, status))
+                for worker, status in worker_status.items():
+                    click.echo('Worker: {} - '.format(worker), nl=False)
+                    click.secho(status.value, fg=utils.status_to_color(status))
+
+            if not live:
+                break
+
+            sleep(1)
 
 
 @utils.verify_location
-def pinstall(service, upgrade, req_append, packages):
-    if not packages:
-        raise click.ClickException('No packages supplied')
-
-    # Remove duplicates
-    packages = list(set(packages))
-
-    # Get docker client
-    client = docker.from_env()
-
-    # Resolve service name to container
-    container_name = utils.get_containers_names()[service]
-
-    # Get running containers
-    containers = {c.name: c for c in client.containers.list()}
-
-    # Check target container is running
-    if container_name not in containers:
-        raise click.ClickException('Target container is down! Did you forget to run "denzel start"?')
-
-    # Check if the packages are already installed
-    installation_status = utils.is_installed(container=containers[container_name],
-                                             packages=packages)
-    if not upgrade:
-        for installed in compress(packages, installation_status):
-            click.echo(
-                '{} is already installed, skipping. If you wish to upgrade, use the --upgrade flag.'.format(installed))
-
-        if all(installation_status):  # If all packages already installed
-            return
-
-    new_packages = list(compress(packages, map(lambda x: not x, installation_status)))
-
-    # Run pip install
-    command = ['docker', 'exec', container_name, 'pip', 'install']
-    if upgrade:
-        command.append('--upgrade')
-
-    command += packages if upgrade else new_packages
-
-    # Install
-    subprocess.run(command)
-
-    # Append to requirements file
-    if req_append:
-        # Verify installation
-        installation_status = utils.is_installed(container=containers[container_name],
-                                                 packages=new_packages)
-        successfully_installed = list(compress(new_packages, installation_status))
-
-        if successfully_installed:
-            utils.append_to_requirements(packages=successfully_installed)
-
-
-@utils.verify_location
-def updatereqs(service, upgrade, restart_services=True):
-    # Get docker client
-    client = docker.from_env()
-
-    # Resolve service name to container
-    container_name = utils.get_containers_names()[service]
-
-    # Get running containers
-    containers = {c.name: c for c in client.containers.list()}
-
-    # Check target container is running
-    if container_name not in containers:
-        raise click.ClickException('Target container is down! Did you forget to run "denzel start"?')
-
-    # Run pip install
-    command = ['docker', 'exec', container_name, 'pip', 'install', '-r']
-    if upgrade:
-        command.append('--upgrade')
-
-    # Install
-    subprocess.run(command)
-
-    # Restart
-    if restart_services:
+def updatereqs():
+    with utils.set_status(config.Status.BUILDING, remove=False):
+        # Restart
         restart()
 
 

@@ -6,43 +6,49 @@ services:
     build:
       context: ""
       dockerfile: '${dockerfile}'
-    image: '${image_name}'
+    image: '${image_name}:${image_tag}'
     ports:
       - '${api_port}:8000'
     volumes:
       - '.:/opt/denzel'
-    command: gunicorn -b 0.0.0.0:8000 app:app
+      - '/etc/timezone:/etc/timezone:ro'
+      - '/etc/localtime:/etc/localtime:ro'
     environment:
       - GUNICORN_CMD_ARGS="--timeout=600"  # 10 minutes
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
+    entrypoint: ./entrypoints/api.sh
     depends_on:
       - redis
 
   denzel:
-    image: '${image_name}'
+    image: '${image_name}:${image_tag}'
     runtime: '${runtime}'
     volumes:
       - '.:/opt/denzel'
       - './logs:/opt/denzel/logs'
-    command: celery -A app.tasks worker --loglevel=info --logfile=logs/worker%i.log -n worker%${project_name}
+      - '/etc/timezone:/etc/timezone:ro'
+      - '/etc/localtime:/etc/localtime:ro'
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
+    entrypoint: ./entrypoints/denzel.sh ${COMPOSE_PROJECT_NAME}
     depends_on:
       - api
       - redis
 
   redis:
-    image: '${redis_image_tag}'
+    image: 'redis:${redis_image_tag}'
 
   monitor:
-    image: '${image_name}'
+    image: '${image_name}:${image_tag}'
     ports:
       - '${monitor_port}:5555'
     volumes:
       - '.:/opt/denzel'
-    command: flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
+      - '/etc/timezone:/etc/timezone:ro'
+      - '/etc/localtime:/etc/localtime:ro'
+    entrypoint: ./entrypoints/monitor.sh
     depends_on:
       - api
       - redis

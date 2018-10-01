@@ -56,34 +56,18 @@ def restart():
 
 # -------- status --------
 @cli.command()
-def status():
-    """Examine status of services"""
-    commands.status()
-
-
-# -------- pinstall (pip install) --------
-@cli.command()
-@click.option('--service', default='denzel', type=click.Choice(config.DENZEL_IMAGE_SERVICES),
-              help='Installation target service', show_default=True)
-@click.option('--upgrade/--no-upgrade', default=False,
-              help='Upgrade if already installed', show_default=True)
-@click.option('--req-append/--no-req-append', default=True,
-              help='Append to requirements.txt file', show_default=True)
-@click.argument('packages', nargs=-1)
-def pinstall(service, upgrade, req_append, packages):
-    """Install pip packages to running services"""
-    commands.pinstall(service, upgrade, req_append, packages)
+@click.option('--live/--no-live', default=False,
+              help='Live status view', show_default=True)
+def status(live):
+    """Examine status of services and worker"""
+    commands.status(live)
 
 
 # -------- updatereqs --------
 @cli.command()
-@click.option('--service', default='denzel', type=click.Choice(config.DENZEL_IMAGE_SERVICES),
-              help='Installation target service', show_default=True)
-@click.option('--upgrade/--no-upgrade', default=False,
-              help='Upgrade if already installed', show_default=True)
-def updatereqs(service, upgrade):
-    """Update service according to requirements.txt"""
-    commands.updatereqs(service, upgrade)
+def updatereqs():
+    """Update services according to requirements.txt"""
+    commands.updatereqs()
 
 
 # -------- logs --------

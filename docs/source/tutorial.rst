@@ -2,7 +2,7 @@ Tutorial
 ========
 
 | A step by step tutorial for installing and launching a denzel deployment.
-| For this tutorial we will train and deploy a Iris classifier, based on the Iris dataset.
+| For this tutorial we will train and deploy a Iris classifier, based on the `Iris dataset`_.
 
 Prerequisites
 -------------
@@ -131,6 +131,10 @@ Starting a denzel Project
     |   |   `-- pipeline.py  <----------------------- Pipeline Methods
     |   `-- tasks.py
     |-- docker-compose.yml
+    |-- entrypoints
+    |   |-- api.sh
+    |   |-- denzel.sh
+    |   `-- monitor.sh
     |-- logs
     `-- requirements.txt  <-------------------------- Requirements
 
@@ -235,7 +239,9 @@ Define Interface (API)
 Launch (partial project)
 ------------------------
 
-| Even though we haven't completed all our tasks to make the deployment fully functional, now is a good time for a sanity check.
+| In an ideal scenario, we would launch a project only after we have completed all necessary tasks for a full deployment.
+| For guidance and simplicity sake of this tutorial, we will launch a partial project and complete tasks gradually.
+|
 | What we have now is a skeleton, an editted ``info.txt`` and ``requirements.txt`` files and we can launch our API, without the functionality of the :ref:`predict_endpoint` endpoint (yet).
 | Inside project directory run:
 
@@ -243,58 +249,68 @@ Launch (partial project)
 
     $ denzel launch
 
-    Creating network "irisclassifier_default" with the default driver
-    Pulling redis (redis:3.2.11)...
-    3.2.11: Pulling from library/redis
-    4d0d76e05f3c: Pull complete
-    cfbf30a55ec9: Pull complete
-    82648e31640d: Pull complete
-    1d925e96c510: Pull complete
+    Creating network "iris_classifier_default" with the default driver
+    Pulling redis (redis:4)...
+    4: Pulling from library/redis
+    802b00ed6f79: Pull complete
+    8b4a21f633de: Pull complete
+    92e244f8ff14: Pull complete
+    fbf4770cd9d6: Pull complete
     .
     .
-
-
-| If this is the first time you launch a denzel project, the necessary images will be downloaded and built.
-| What is going on in the background is necessary for building the containers that will power the deployment.
-| This might take a few minutes, so sit back and enjoy an `Oscar winning performance by the man himself`_.
-
-.. _`Oscar winning performance by the man himself`: https://youtu.be/6KrNpxODiDA
 
 .. note::
 
     By default denzel will occupy port 8000 for the API and port 5555 for monitoring. If one of them is taken, denzel will let you know and you can opt for other ports - for more info check the :ref:`launch` command documentation.
 
+| If this is the first time you launch a denzel project, the necessary docker images will be downloaded and built.
+| What is going on in the background is necessary for building the containers that will power the deployment.
+|
+| If you are not really familiar with docker you can think of images like classes in programming, they define the structure of an object, and containers are like the instances.
+| In the context of docker the objects the images define are actually virtual machines and the containers we create from them is where our code will run on.
+|
+| This whole process might take a few minutes, so sit back and enjoy an `Oscar winning performance by the man himself`_.
+
+.. _`Oscar winning performance by the man himself`: https://youtu.be/6KrNpxODiDA
+
 | Once done if everything went right you should see the end of the output looking like this:
 
 .. code-block:: bash
 
-    Creating irisclassifier_redis_1   ... done
-    Creating irisclassifier_api_1     ... done
-    Creating irisclassifier_denzel_1  ... done
-    Creating irisclassifier_monitor_1 ... done
+    Starting redis   ... done
+    Starting api     ... done
+    Starting denzel  ... done
+    Starting monitor ... done
 
 | This indicates that all the containers (services) were created and are up.
-
-.. tip::
-
-    You can always check the status of the services using the :ref:`status` command. Normally all should be up or all down.
-
-| For sanity check, assuming you have deployed locally, open your favorite browser and go to http://localhost:8000/info . You should see the contents of ``info.txt``
-| At any time, you can stop all services using the :ref:`stop` command and start them again with the :ref:`start` command.
-| From this moment forward we shouldn't use the :ref:`launch` command as a project can and needs to be launched once.
-| If for any reason you wish to relaunch a project (for changing ports for example) you'd have to first :ref:`shutdown` and then :ref:`launch` again.
-|
-| Before moving on there is one last thing we should do. Since we have edited ``requirements.txt`` we should signal denzel to update the default packages it comes with.
-| You see when we launch a denzel project, only the basic packages are being installed - so to make our packages available we should call :ref:`updatereqs`:
+| Once they are up the services will start installing the packages we specified in ``requirements.txt``, you can view the status of the services by using the :ref:`status` command, optionally with the ``--live`` flag.
+| If you would run it right away you'd expect to see:
 
 .. code-block:: bash
 
-    $ denzel updatereqs
-    Collecting scikit-learn (from -r requirements.txt (line 6))
-    .
-    .
+    $ denzel status
+    Services:
+        denzel - INSTALLING...
+        monitor - INSTALLING...
+        api - INSTALLING...
+        redis - UP
+    Worker: api - UNAVAILABLE
 
-| After this command finishes we should have our packages installed and ready to use
+| When all the installing is done and everything is ready, you'll see all the statuses change to ``UP``.
+| If you want to see the messages printed out throughout the installation, you can use the :ref:`logs` command.
+| At any time during the lifetime of your project, if you want to add more pip packages, just insert them to the ``requirements.txt`` file and use the :ref:`updatereqs` command.
+
+.. tip::
+
+    | Using the ``denzel status --live`` command is a great way to monitor the system. When conducting installations and loading it is a great way to get a high level live view of the system.
+    | For lower level view, examining the outputs of the containers, use the live view of the logs using ``denzel logs --live``.
+
+
+| For sanity check, assuming you have deployed locally, open your favorite browser and go to http://localhost:8000/info . You should see the contents of ``info.txt`` (assuming all services are up).
+| At any time, you can stop all services using the :ref:`stop` command and start them again with the :ref:`start` command.
+| From this moment forward we shouldn't use the :ref:`launch` command as a project can and needs to be launched once.
+| If for any reason you wish to relaunch a project (for changing ports for example) you'd have to first :ref:`shutdown` and then :ref:`launch` again.
+
 
 Pipeline Methods
 ----------------
@@ -308,14 +324,12 @@ Pipeline Methods
 
 .. figure:: _static/request_flow_verify_input.png
 
-| When a user makes a request, the first pipeline method that the request will meet is :ref:`pipeline_verify_input`
+| When a user makes a request, the first pipeline method that the request will meet is :ref:`pipeline_verify_input`.
 | The :ref:`pipeline_verify_input` method is responsible for making sure the JSON data received matches the :ref:`interface we defined <api_interface>`.
 | In order to do that, lets edit the :ref:`pipeline_verify_input` method to do just that:
 
 .. code-block:: python3
 
-    .
-    .
     FEATURES = ['sepal-length', 'sepal-width', 'petal-length', 'petal-width']
 
     def verify_input(json_data):
@@ -409,25 +423,29 @@ Pipeline Methods
 
     | When using paths on code which is executed inside the containers (like the pipeline methods) the current directory is always the project main directory (where the ``requirements.txt`` is stored). Hence the saved model prefix above is ``./app/assets/...``.
 
-.. warning::
-
-    | When loading heavy models (unlike the tutorial classifier) that take long time to be read, you might want to wait for it to load before making any requests.
-    | To do that, use the :ref:`logworker` command, preferably with the ``--live`` flag and wait to see
-
-    .. code-block:: bash
-
-        [2018-09-18 13:36:34,685: INFO/MainProcess] Connected to redis://redis:6379/0
-        [2018-09-18 13:36:34,701: INFO/MainProcess] mingle: searching for neighbors
-        [2018-09-18 13:36:35,721: INFO/MainProcess] mingle: all alone
-        [2018-09-18 13:36:35,738: INFO/MainProcess] celery@6b8486b24ff1 ready.
-        [2018-09-18 13:36:38,489: INFO/MainProcess] Events of group {task} enabled by remote.
-
-    | Once the worker is ready, it will print out these lines.
-
 | When we edit the pipeline methods, the changes do not take effect until we restart the services.
 | As we just edited a pipeline method, we should run the :ref:`restart` command so the changes apply.
 | Navigate back into the project main directory and run ``denzel restart`` and after the services have restarted the changes will take effect.
 | To verify all went well you can examine the logs by running the :ref:`logs` command - if anything went wrong we will see it there (more about that in :ref:`debugging`).
+
+.. warning::
+
+    | When loading heavy models (unlike the tutorial classifier) that take long time to be read, you might want to wait for it to load before making any requests.
+    | To do that, you should watch the output of the :ref:`status` command and check if your worker is ready, optionally with the ``--live`` flag. If your model is indeed taking much time to load, the output should like like follows:
+
+    .. code-block:: bash
+
+        $ denzel status
+
+        Services:
+            denzel - UP
+            monitor - UP
+            api - UP
+            redis - UP
+        Worker: all - LOADING...
+
+
+    | This means all the services are up, but API endpoints (as well as monitoring) are not available yet as the worker is still loading.
 
 ^^^^^^^^^^^
 ``process``
@@ -511,7 +529,9 @@ Pipeline Methods
 
 .. warning::
 
-    The returned value of the :ref:`pipeline_predict` function must be a dictionary. This is necessary because denzel will parse it into JSON to be sent back to the end user.
+    The returned value of the :ref:`pipeline_predict` function must be a **dictionary and all of its contents must be JSON serializable**.
+    This is necessary because denzel will parse it into JSON to be sent back to the end user.
+
 
 | And... That's it! Denzel is ready to be fully operational.
 | Don't forget, after all these changes we must run ``denzel restart`` so they will take effect.
@@ -625,7 +645,7 @@ Using the API to Predict
 | Now is the time to put denzel into action.
 | To do that, we must first have some URI to receive the responses (remember, we are using :ref:`async responses <tasks_and_synchrony>`).
 | You can do that by using `waithook`_ which is an in browser service for receiving HTTP requests, just what we need - just follow the link, choose a "Path Prefix" (for example ``john_q`` and press "Subscribe".
-| Use the link that will be generated for you (http://waithook.com/?path=<chosen_path_prefix>) and keep the browser open as we will receive the responses to the output window.
+| Use the link that will be generated for you (http://waithook.com/<chosen_path_prefix>) and keep the browser open as we will receive the responses to the output window.
 | Next we need to make an actual POST request to the :ref:`predict_endpoint` endpoint. We will do that using `curl`_ through the command line.
 
 .. tip::
@@ -639,7 +659,7 @@ Using the API to Predict
 
         $ curl --header "Content-Type: application/json" \
         > --request POST \
-        > --data '{"callback_uri": "http://waithook.com/?path=john_q",'\
+        > --data '{"callback_uri": "http://waithook.com/john_q",'\
         > '"data": {"a123": {"sepal-length": 4.6, "sepal-width": 3.6, "petal-length": 1.0, "petal-width": 0.2},'\
         > '"b456": {"sepal-length": 6.5, "sepal-width": 3.2, "petal-length": 5.1, "petal-width": 2.0}}}' \
         http://localhost:8000/predict
@@ -649,7 +669,7 @@ Using the API to Predict
         import requests
 
         data = {
-          "callback_uri": "http://waithook.com/?path=john_q",
+          "callback_uri": "http://waithook.com/john_q",
           "data": {"a123": {"sepal-length": 4.6, "sepal-width": 3.6, "petal-length": 1.0, "petal-width": 0.2},
                    "b456": {"sepal-length": 6.5, "sepal-width": 3.2, "petal-length": 5.1, "petal-width": 2.0}}
         }
@@ -657,7 +677,7 @@ Using the API to Predict
         response = requests.post('http://localhost:8000/predict', json=data)
 
 
-| If the request has passed the :ref:`pipeline_verify_input` method, you should immediately get a response that looks something like:
+| If the request has passed the :ref:`pipeline_verify_input` method, you should immediately get a response that looks something like (on curl, you'd see it in your prompt, with ``requests`` you'll have it in ``response.json()``):
 
 .. code-block:: json
 
@@ -770,26 +790,26 @@ Deployment
 
     $ denzel shutdown --purge
 
-    Stopping irisclassifier_denzel_1  ... done
-    Stopping irisclassifier_monitor_1 ... done
-    Stopping irisclassifier_api_1     ... done
-    Stopping irisclassifier_redis_1   ... done
-    Removing irisclassifier_denzel_1  ... done
-    Removing irisclassifier_monitor_1 ... done
-    Removing irisclassifier_api_1     ... done
-    Removing irisclassifier_redis_1   ... done
-    Removing network irisclassifier_default
-    Removing image redis:3.2.11
+    Stopping iris_classifier_denzel_1  ... done
+    Stopping iris_classifier_monitor_1 ... done
+    Stopping iris_classifier_api_1     ... done
+    Stopping iris_classifier_redis_1   ... done
+    Removing iris_classifier_denzel_1  ... done
+    Removing iris_classifier_monitor_1 ... done
+    Removing iris_classifier_api_1     ... done
+    Removing iris_classifier_redis_1   ... done
+    Removing network iris_classifier_default
+    Removing image redis:4
+    Removing image denzel:1.0.0
+    Removing image denzel:1.0.0
+    ERROR: Failed to remove image for service denzel:1.0.0: 404 Client Error: Not Found ("No such image: denzel:1.0.0")
     Removing image denzel
-    Removing image denzel
-    ERROR: Failed to remove image for service denzel: 404 Client Error: Not Found ("No such image: denzel:latest")
-    Removing image denzel
-    ERROR: Failed to remove image for service monitor: 404 Client Error: Not Found ("No such image: denzel:latest")
+    ERROR: Failed to remove image for service denzel:1.0.0: 404 Client Error: Not Found ("No such image: denzel:1.0.0")
 
     $ denzel launch
-    Creating network "irisclassifier_default" with the default driver
-    Pulling redis (redis:3.2.11)...
-    3.2.11: Pulling from library/redis
+    Creating network "iris_classifier_default" with the default driver
+    Pulling redis (redis:4)...
+    4: Pulling from library/redis
     .
     .
 
@@ -802,7 +822,7 @@ Deployment
 | By now denzel will rebuild everything from zero, but all the edited files and assets will still be present.
 | After the relaunching is done check again that all endpoints are functioning as expected - just to make sure.
 | If all is well your system is ready to be deployed wherever, on a local machine, a remote server or a docker supporting cloud service.
-| Do deploy it elsewhere simply copy all the contents of the project directory to the desired destination, :ref:`install denzel <install>` and call ``denzel launch`` from within that directory.
+| To deploy it elsewhere simply copy all the contents of the project directory to the desired destination, :ref:`install denzel <install>` and call ``denzel launch`` from within that directory.
 
 
 Deleting
