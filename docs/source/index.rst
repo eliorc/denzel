@@ -1,12 +1,14 @@
 Denzel Deployment Framework
 ===========================
 
-| Denzel is a model-agnostic lean framework for fast and easy API deployment of machine learning models.
+| `Denzel`_ is a model-agnostic lean framework for fast and easy API deployment of machine learning models.
 | Denzel is data scientist first; while it leverages production grade tools and practices, its main goal is to abstract the mechanics from the data scientist allowing model deployment with ease.
 
 .. warning::
 
     Denzel only works only on Linux environment at the moment. Windows support will be added - keep yourself updated by checking the :ref:`development state <development_state>` for new features and support.
+
+.. _`Denzel`: https://github.com/eliorc/denzel
 
 .. toctree::
    :maxdepth: 1
@@ -108,9 +110,7 @@ Showcase
 
        return response
 
-
 .. _`Flower UI`: https://flower.readthedocs.io/en/latest/screenshots.html
-
 .. _`development_state`:
 
 Development State

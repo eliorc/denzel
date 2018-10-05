@@ -781,8 +781,10 @@ Deployment
 ----------
 
 | Since denzel is fully containerized it should work on any machine as long as it has docker, docker-compose and Python3 installed.
+| Also all of the main cloud service providers already support dockerized appications.
+|
 | After completing all the necessary implementations for deployment covered in this tutorial it is best to check that the system can be launched from scratch.
-| To do that, we should :ref:`shutdown` while purging all images, and relaunch the project - don't worry no code is being deleted during shutdown.
+| To do that, we should :ref:`shutdown` while purging all images, and relaunch the project - don't worry no code is being deleted during shutdown. This process it to make sure that when we deploy it somewhere else, it will work.
 | Go to the main project directory and run the following:
 
 .. code-block:: bash
@@ -817,12 +819,25 @@ Deployment
     | The "ERROR: Failed to remove...." can be safely ignored. This is a result of the ``--purge`` flag that tells denzel to remove the denzel image.
     | Since the image is used by three different containers, it will successfully delete it on the first container but fail on the other two.
 
-
-| By now denzel will rebuild everything from zero, but all the edited files and assets will still be present.
 | After the relaunching is done check again that all endpoints are functioning as expected - just to make sure.
 | If all is well your system is ready to be deployed wherever, on a local machine, a remote server or a docker supporting cloud service.
-| To deploy it elsewhere simply copy all the contents of the project directory to the desired destination, :ref:`install denzel <install>` and call ``denzel launch`` from within that directory.
+| To deploy it elsewhere simply copy all the contents of the project directory to the desired destination, verify docker, docker-compose and Python3 are installed, :ref:`install denzel <install>` and call ``denzel launch`` from within that directory.
+| As a matter of fact, we can skip the installing denzel part when we deploy - more about that in the :ref:`production` section.
 
+
+.. _`production`:
+
+Production
+----------
+
+| Denzel is essentially a docker-compose application, with an accompanying CLI tool to abstract docker and OS related functionality from the data scientist developing the application.
+| This means that if you are going to deploy your application on a docker-supporting cloud service, or deliver it to a production developer the denzel package is no longer mandatory.
+| Because the contents of the project directory already include the ``docker-compose.yml``, the ``Dockerfile`` and all the code needed to run and manage the application - Any service or person that can deal with docker will be able to do so.
+| Denzel is built that way so that going into production, more advanced docker management tools (like `Kubernetes`_) can be used to apply more advanced production techniques like continuous deployment and scaling.
+|
+| Denzel takes you from a model, to a containerized and deployable application in a data scientist oriented way - once you have that, the options are endless.
+
+.. _`Kubernetes`: https://kubernetes.io/
 
 Deleting
 --------
