@@ -68,13 +68,13 @@ Usage: ``denzel launch [OPTIONS]``
 
 Builds and starts all services.
 
-.. option:: --api-monitor <INTEGER>
+.. option:: --api-port <INTEGER>
 
     API endpoints port
 
     Default: ``8000``
 
-.. option:: --monitor-monitor <INTEGER>
+.. option:: --monitor-port <INTEGER>
 
     Monitor UI port
 
