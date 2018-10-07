@@ -1,6 +1,11 @@
 Denzel Deployment Framework
 ===========================
 
+.. figure:: _static/logo_icon.svg
+    :width: 10%
+    :align: center
+
+
 | `Denzel`_ is a model-agnostic lean framework for fast and easy API deployment of machine learning models.
 | Denzel is data scientist first; while it leverages production grade tools and practices, its main goal is to abstract the mechanics from the data scientist allowing model deployment with ease.
 
