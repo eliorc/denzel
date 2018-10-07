@@ -1,7 +1,7 @@
 .. raw:: html
 
     <div align="center">
-      <img src="https://raw.githubusercontent.com/eliorc/denzel/master/docs/source/_static/logo_github.svg"><br><br>
+      <img src="https://www.dropbox.com/s/s35ym7w8f6f49kb/logo_github.svg"><br><br>
     </div>
 
 ------------
