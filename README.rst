@@ -1,5 +1,8 @@
-.. figure:: docs/source/_static/logo_github.svg
-    :align: center
+.. raw:: html
+
+    <div align="center">
+      <img src="https://raw.githubusercontent.com/eliorc/denzel/master/docs/source/_static/logo_github.svg"><br><br>
+    </div>
 
 ------------
 
