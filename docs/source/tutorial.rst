@@ -37,7 +37,7 @@ Prerequisites
 .. _`Install docker-compose`: https://docs.docker.com/compose/install/
 .. _`virtualenv`: https://virtualenv.pypa.io/en/stable/
 .. _`Install virtualenv`: https://virtualenv.pypa.io/en/stable/installation/
-.. _`oficial docs`: https://docs.docker.com/install/linux/linux-postinstall/#manage-docker-as-a-non-root-user
+.. _`official docs`: https://docs.docker.com/install/linux/linux-postinstall/#manage-docker-as-a-non-root-user
 
 
 .. _`install`:
