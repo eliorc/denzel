@@ -23,8 +23,11 @@ Prerequisites
 
         $ docker-compose --version
         docker-compose version 1.22.0, build f46880fe
+        
+3. User must be a part of the ``docker`` group (be able to run ``docker`` commands without ``sudo``). Details on how to achieve that can be found in the `official docs`_. 
 
-3. (Optional) `Install virtualenv`_ and create one to work on.
+4. (Optional) `Install virtualenv`_ and create one to work on.
+
 
 .. note::
     | If opting for ``virtualenv`` understand that the deployment will not be using this env - it will only be used to install denzel on it.
@@ -34,6 +37,7 @@ Prerequisites
 .. _`Install docker-compose`: https://docs.docker.com/compose/install/
 .. _`virtualenv`: https://virtualenv.pypa.io/en/stable/
 .. _`Install virtualenv`: https://virtualenv.pypa.io/en/stable/installation/
+.. _`oficial docs`: https://docs.docker.com/install/linux/linux-postinstall/#manage-docker-as-a-non-root-user
 
 
 .. _`install`:
