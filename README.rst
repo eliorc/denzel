@@ -12,7 +12,7 @@ Denzel Deployment Framework
 | Denzel is a model-agnostic lean framework for fast and easy API deployment of machine learning models.
 | Denzel is data scientist first; while it leverages production grade tools and practices, its main goal is to abstract the mechanics from the data scientist allowing model deployment with ease.
 |
-| Notice: Denzel only works only on Linux environment at the moment. Windows support will be added - keep yourself updated by checking the development state at the bottom of this page for new features and support.
+| Notice: Denzel only works on Linux environment at the moment. Windows support will be added - keep yourself updated by checking the development state at the bottom of this page for new features and support.
 
 Documentation
 -------------

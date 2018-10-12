@@ -117,6 +117,10 @@ Starting a denzel Project
 
 | To start a project, you first have to run the command :ref:`startproject`, as a result denzel will build for you the following skeleton
 
+.. note::
+
+    | Denzel supports GPU deployments. If you are going to run your deployment on a GPU, make sure you install `nvidia-docker`_ and use the ``--gpu`` flag.
+
 .. code-block:: bash
 
     $ denzel startproject iris_classifier
@@ -154,6 +158,8 @@ Starting a denzel Project
 
     | A good practice will be to edit only the body of functions in ``pipeline.py`` and if you wish to add your own custom functions that will be called from within ``pipeline.py``, you should put them on a separate file inside the ``app/logic`` directory and import them.
 
+
+.. _`nvidia-docker`: https://github.com/NVIDIA/nvidia-docker
 
 Requirements
 ------------
