@@ -13,6 +13,7 @@ from . import config
 # -------- Helpers --------
 def verify_location(func):
     """ Verifies the current location is in project main directory """
+
     def command(*args, **kwargs):
         if not os.path.exists('.env'):
             raise click.ClickException("You must be inside project's directory to call this command")
@@ -51,6 +52,7 @@ def file_to_status(filename):
 
     return None
 
+
 def status_to_color(status):
     """ Given a status enum, gets its ANSI related color """
 
@@ -64,6 +66,7 @@ def status_to_color(status):
         return config.Colors.FAILURE.value
 
     return config.Colors.NEUTRAL.value
+
 
 @contextmanager
 def set_status(status, service='', remove=True):
@@ -102,7 +105,7 @@ def read_env():
         for line in env_file:
             if line:
                 key, val = line.split('=', maxsplit=1)
-                env_data[key] = val
+                env_data[key] = val.strip()
 
     return env_data
 
@@ -114,7 +117,9 @@ def get_worker_status():
         return {'all': config.Status.LOADING}
 
     try:
-        response = requests.get('http://localhost:{}/api/workers?refresh=1&status=1'.format(config.MONITOR_PORT))
+
+        response = requests.get(
+            'http://localhost:{}/api/workers?refresh=1&status=1'.format((read_env()['monitor_port'])))
         if response.status_code != 200:
             return {'all': config.Status.ERROR}
 

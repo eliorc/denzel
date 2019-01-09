@@ -75,7 +75,6 @@ def launch(api_port, monitor_port):
         subprocess.run(command)
 
 
-
 @utils.verify_location
 def shutdown(purge):
     command = ['docker-compose', 'down']
@@ -105,7 +104,11 @@ def restart():
 
 @utils.verify_location
 def status(live):
+    # Get status
     service_status = utils.get_containers_status()
+
+    # Get env
+    docker_env = utils.read_env()
 
     # Haven't built yet
     if not service_status[config.Status.DOWN] and not service_status[config.Status.UP]:
@@ -118,19 +121,24 @@ def status(live):
             if live:
                 click.clear()
 
+            # Display service statuses
             click.echo('Services:')
             for status, services in service_status.items():
                 if services:
                     for service in services:
-                        click.echo('\t{} - '.format(service), nl=False)
-                        click.secho(status.value, fg=utils.status_to_color(status))
+                        click.echo('\t{} - '.format(service), nl=False)              # Service name
+                        click.secho(status.value, fg=utils.status_to_color(status),  # Service status
+                                    nl=service not in config.SERVICES_WITH_EXPOSED_PORT or status != config.Status.UP)
+                        if service in config.SERVICES_WITH_EXPOSED_PORT and status == config.Status.UP:
+                            click.echo(' [ Port: {} ]'.format(docker_env['{}_port'.format(service)]))  # Service port
 
+            # Display worker status
             if 'monitor' in service_status[config.Status.UP]:
                 worker_status = utils.get_worker_status()
 
                 for worker, status in worker_status.items():
-                    click.echo('Worker: {} - '.format(worker), nl=False)
-                    click.secho(status.value, fg=utils.status_to_color(status))
+                    click.echo('Worker: {} - '.format(worker), nl=False)  # Worker name
+                    click.secho(status.value, fg=utils.status_to_color(status))  # Worker status
 
             if not live:
                 break

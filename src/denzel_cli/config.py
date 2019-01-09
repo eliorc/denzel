@@ -1,9 +1,10 @@
 from enum import Enum
 
 SERVICES = ['api', 'denzel', 'monitor', 'redis']
+SERVICES_WITH_EXPOSED_PORT = ['api', 'monitor']
 
 DENZEL_IMAGE_NAME = 'denzel'
-DENZEL_IMAGE_TAG = '1.0.0'
+DENZEL_IMAGE_TAG = '1.0.1'
 
 DENZEL_IMAGE_SERVICES = ['api', 'denzel', 'monitor']
 

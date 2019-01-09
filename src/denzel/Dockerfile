@@ -1,4 +1,4 @@
-FROM python
+FROM python:3.6
 ENV PYTHONUNBUFFERED 1
 
 RUN mkdir -p /opt/denzel
@@ -13,7 +13,6 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 # ==================================================================
 # tools
 # ------------------------------------------------------------------
-
     DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
         build-essential \
         ca-certificates \
@@ -26,7 +25,6 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 # ==================================================================
 # denzel python essentials
 # ------------------------------------------------------------------
-
     $PIP_INSTALL \
         pip \
         cython \
@@ -41,9 +39,7 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 # ==================================================================
 # config & cleanup
 # ------------------------------------------------------------------
-
 RUN ldconfig && \
     apt-get clean && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/*
-
