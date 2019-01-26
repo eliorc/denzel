@@ -27,7 +27,7 @@ class Model(celery.Task):
 
 
 @app.task(base=Model)
-def invoke_predict(json_data):
+def invoke_predict(json_data, sync=False):
     # Preprocess data
     data = process(invoke_predict.model, json_data)
 
@@ -35,8 +35,9 @@ def invoke_predict(json_data):
     result = predict(invoke_predict.model, data)
 
     # Send prediction to callback_uri
-    requests.post(url=json_data['callback_uri'],
-                  json=result)
+    if not sync:
+        requests.post(url=json_data['callback_uri'],
+                      json=result)
 
     return result
 

@@ -17,6 +17,7 @@ Command Line Interface (CLI)
       launch        Builds and starts all services
       logs          Show service logs
       logworker     Show worker log
+      response      Set response manner (sync/async) and sync timeout
       restart       Restart services
       shell         Connect to service bash shell
       shutdown      Stops and deletes all services
@@ -216,3 +217,22 @@ Usage: ``denzel updatereqs``
 Update services according to ``requirements.txt``. This command always uses the pip ``--upgrade`` flag, so requirements will always be updated to the latest version.
 If you wish to install a specific version, specify it in the ``requirements.txt`` file. This command will initiate a restart so updates will apply.
 
+.. _response:
+
+--------
+response
+--------
+
+Usage ``denzel response [OPTIONS]``
+
+Set response manner (sync/async) and sync timeout
+
+.. option:: --sync|--async
+
+    Responses synchronicity  [required]
+
+.. option:: --timeout
+
+    Sync response timeout in seconds
+
+    Default: ``5.0``

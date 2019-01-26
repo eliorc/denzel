@@ -77,6 +77,7 @@ def launch(api_port, monitor_port):
 
 @utils.verify_location
 def shutdown(purge):
+    utils.redis_backup(background=False)
     command = ['docker-compose', 'down']
 
     if purge:
@@ -92,6 +93,7 @@ def start():
 
 @utils.verify_location
 def stop():
+    utils.redis_backup(background=False)
     command = ['docker-compose', 'stop']
     subprocess.run(command)
 
@@ -126,7 +128,7 @@ def status(live):
             for status, services in service_status.items():
                 if services:
                     for service in services:
-                        click.echo('\t{} - '.format(service), nl=False)              # Service name
+                        click.echo('\t{} - '.format(service), nl=False)  # Service name
                         click.secho(status.value, fg=utils.status_to_color(status),  # Service status
                                     nl=service not in config.SERVICES_WITH_EXPOSED_PORT or status != config.Status.UP)
                         if service in config.SERVICES_WITH_EXPOSED_PORT and status == config.Status.UP:
@@ -185,3 +187,8 @@ def shell(service):
     container_names = utils.get_containers_names()
     command = ['docker', 'exec', '-it', container_names[service], 'bash']
     subprocess.run(command)
+
+
+@utils.verify_location
+def response(sync, timeout):
+    utils.set_response_manner(synchronous=sync, timeout=timeout)

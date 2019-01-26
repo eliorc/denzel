@@ -34,9 +34,9 @@ Architecture and Task Flow
 | On system startup (``denzel start``) a worker inside the **denzel container** will use the :func:`pipeline.load_model` function to load the model into memory, and will keep it there until the worker shuts down (should happen only when the system is shut down).
 | The worker, is always listening for tasks in the queue, which is inside the **Redis container**.
 | When an end-user sends a POST request to the ``/predict`` endpoint, the request will first go through the :func:`pipeline.verify_input` function to make sure the schema is as expected by denzel (defined by the data scientist).
-| If all is well, the request is turned into a task and is sent into the task queue and a response will be sent back to the user with a task ID.
+| If all is well, the request is turned into a task and is sent into the task queue.
 | As the task enters the queue, if the worker is not already busy it will consume the task. The task then goes through the :func:`pipeline.process` function, which accepts the output of the :func:`pipeline.verify_input` function and parses it to model-ready data.
-| If processing is successful, the model-ready data enters the :func:`pipeline.predict` function where all the model magic happens and then a response with the prediction will be sent to a ``callback_uri`` which was supplied by the end-user initially.
+| If processing is successful, the model-ready data enters the :func:`pipeline.predict` function where all the model magic happens and then a response with the prediction will be sent back to the client in the synchronous case, or to the ``callback_uri`` which was supplied by the end-user initially in the asynchronous case.
 | At any time during the lifetime of a task, the end-user can view its status through the :ref:`status_endpoint` endpoint, or through the built-in UI exposed by the **Monitor container**.
 
 .. note::
@@ -62,12 +62,24 @@ Tasks and Synchrony
 .. code-block:: json
 
     {
-        "callback_uri": "http://alonzo.trainingday.com/stash",
+        "callback_uri": "http://alonzo.trainingday.com/stash",  # This could be opted out for synchronous responses
         "data": {"predict_id_1": {"feature1": 0.45, "feature2": -1.99},
                  "predict_id_2": {"feature1": 0.09, "feature2": -6.15}}
     }
 
-| As a response, the end-user will be returned:
+| Here we have a task submitted by the user with two separate prediction jobs (which are encapsulated as a single task).
+| From here on, there are two possible scenarios; one for synchronous responses and the other for asynchronous.
+| By default denzel will return a synchronous response, in which case the end-user will be returned something like:
+
+.. code-block:: json
+
+    {
+        "predict_id_1": "hotdog",
+        "predict_id_2": "not_hotdog"
+    }
+
+| In the synchronous case, that is the end of the case flow.
+| While if the asynchronous option is set, as a response, the end-user will be returned:
 
 .. code-block:: json
 
@@ -81,7 +93,6 @@ Tasks and Synchrony
     The ``"status": "SUCCESS"`` means the task has been accepted - **not** that there was a prediction made yet.
     Essentially it means the request has passed the :func:`pipeline.verify_input` method and has made it into the queue
 
-| Here we have a task submitted by the user with two separate prediction jobs.
 | If all goes well, as the end-user sends the request it will **synchronously** get a response with a task ID, uniquely identifying the task submitted.
 | After the data has been processed and the prediction has been made, an **asynchronous** response will be sent back to the ``callback_uri`` and will look something like this:
 
@@ -99,3 +110,4 @@ Why Async Responses?
 | The use of asynchronous responses is very common in API services.
 | Denzel, does not want to limit the data scientist and understands that processing and prediction (espcially of batches) might take longer than the end-user response waiting timeout.
 | Using asynchronous responses, the system virtually unlimited in time it takes to return a response, even though it's recommended to respond as fast as possible.
+| To use asynchronous responses, use the :ref:`response` command.

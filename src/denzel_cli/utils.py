@@ -1,3 +1,4 @@
+from typing import Optional
 import subprocess
 import re
 import os
@@ -91,6 +92,56 @@ def set_status(status, service='', remove=True):
             os.remove(status_file)
 
 
+def redis_backup(background: bool):
+    """ Invokes the backing up of Redis (manually creates a data dump) """
+
+    containers_status = get_containers_status()
+    if 'redis' not in containers_status[config.Status.UP]:
+        return
+
+    # Fetch the redis container
+    client = docker.from_env()
+    containers_names = get_containers_names()
+    redis_container = client.containers.get(containers_names['redis'])
+
+    command = ['redis-cli']
+    if background:
+        command.append('bgsave')
+    else:
+        command.append('save')
+
+    redis_container.exec_run(command)
+
+
+def set_response_manner(synchronous: bool, timeout: float):
+    """ Set the state of synchronous responses True == async, False == sync """
+
+    containers_status = get_containers_status()
+    if 'redis' not in containers_status[config.Status.UP]:
+        return
+
+    # Fetch the redis container
+    client = docker.from_env()
+    containers_names = get_containers_names()
+    redis_container = client.containers.get(containers_names['redis'])
+
+    # Set or del
+    command = ['redis-cli', 'set', 'synchronous_timeout']
+
+    if not synchronous:
+        timeout = 0.0
+
+    command.append(str(timeout))
+
+    result = redis_container.exec_run(command)
+
+    if result.exit_code != 0:
+        raise click.ClickException('Failed to change response manner')
+
+    # Save
+    redis_backup(background=True)
+
+
 @verify_location
 def is_gpu():
     """ Checks whether this is a GPU deployment or not """
@@ -159,7 +210,7 @@ def get_containers_names():
 
 @verify_location
 def get_containers_status():
-    """ Retrieves a dictionary mapping service name to its status """
+    """ Retrieves a dictionary mapping status to its service name"""
     # Init status dictionary
     status = defaultdict(list)
 

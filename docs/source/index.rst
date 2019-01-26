@@ -11,7 +11,7 @@ Denzel Deployment Framework
 
 .. warning::
 
-    Denzel only works on Linux environment at the moment. Windows support will be added - keep yourself updated by checking the :ref:`development state <development_state>` for new features and support.
+    Denzel only works on Linux environment at the moment.
 
 .. _`Denzel`: https://github.com/eliorc/denzel
 
@@ -48,7 +48,7 @@ Showcase
    def verify_input(json_data):
        """ Verifies the validity of an API request content """
 
-       # callback_uri is needed to sent the responses to
+       # callback_uri is needed to sent the responses to - NOT NEEDED WHEN USING SYNCHRONOUS RESPONSES
        if 'callback_uri' not in json_data:
            raise ValueError('callback_uri not supplied')
 
@@ -123,20 +123,8 @@ Development State
 
 | Denzel is supported by `Data Science Group Ltd.`_ and is promised to be kept on open source.
 | Denzel right now is on alpha. This means that it is fully operational and new features and support will be added to it before moving on to a beta release.
+| New features and bug fixes can be viewed in the development `Trello board`_.
 
+.. _`Trello board`: https://trello.com/b/yUTZB4D8/denzel
 .. _`Data Science Group Ltd.`: http://www.datascience.co.il/
 
-Upcoming Features
-+++++++++++++++++
-
-.. raw:: html
-
-    <blockquote class="trello-card-compact">
-      <a href="https://trello.com/c/EXb6xs4c/5-windows-support-for-denzel-cli">Trello Card</a>
-    </blockquote>
-    <script src="https://p.trellocdn.com/embed.min.js"></script>
-
-    <blockquote class="trello-card-compact">
-      <a href="https://trello.com/c/xmmOmZuI/7-live-updating">Trello Card</a>
-    </blockquote>
-    <script src="https://p.trellocdn.com/embed.min.js"></script>

@@ -1,10 +1,9 @@
 import ujson
-
+import redis
 import falcon
 from celery.result import AsyncResult
 from app.tasks import invoke_predict
 from app.logic.pipeline import verify_input
-
 
 INFO_FILE = './app/assets/info.txt'
 
@@ -35,6 +34,9 @@ class StatusResource(object):
 
 class PredictResource(object):
 
+    def __init__(self):
+        self._redis = redis.Redis(host='redis')
+
     def on_post(self, req, resp):
         """Handles POST requests"""
 
@@ -64,16 +66,35 @@ class PredictResource(object):
 
         try:
             resp.status = falcon.HTTP_200
-            task = invoke_predict.delay(json_data)
-            resp.body = ujson.dumps({
-                'status': 'success',
-                'data': {
-                    'task_id': task.id
-                }})
+
+            sync_response_timeout = self._respond_synchronically()
+            task = invoke_predict.delay(json_data, sync=bool(sync_response_timeout))
+
+            if sync_response_timeout:  # Sync response
+                result = task.get(timeout=sync_response_timeout)
+                resp.body = ujson.dumps(result)
+            else:  # Async response
+                resp.body = ujson.dumps({
+                    'status': 'success',
+                    'data': {
+                        'task_id': task.id
+                    }})
         except Exception as ex:
             raise falcon.HTTPError(falcon.HTTP_400,
                                    'Error invoking predict',
                                    str(ex))
+
+    def _respond_synchronically(self) -> float:
+        """ Checks the configuration for the type of response (sync/async)
+
+            If timeout == 0.0, respond asynchronically, if > 0.0 respond synchronically with the value as timeout """
+
+        timeout = self._redis.get('synchronous_timeout')
+
+        if not timeout:
+            return 5.0  # Default sync value
+
+        return float(timeout)
 
 
 # Never change this.

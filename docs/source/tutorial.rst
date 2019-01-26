@@ -161,6 +161,7 @@ Starting a denzel Project
 
 .. _`nvidia-docker`: https://github.com/NVIDIA/nvidia-docker
 
+
 Requirements
 ------------
 
@@ -189,13 +190,14 @@ Define Interface (API)
 
 | Our end users will need to know what is the JSON scheme our API accepts, so we will have to define what is the accepted JSON scheme for the :ref:`predict_endpoint` endpoint.
 | In our :ref:`toy model <toy_model>`, we have four features the model expects: 'sepal-length', 'sepal-width', 'petal-length' and 'petal-width'.
-| Since we are going to return an :ref:`async response <tasks_and_synchrony>`, we also need to make sure we include a callback URI in the scheme.
+| denzel allows choosing whether your deployed app returns synchronous or asynchronous responses - in this tutorial we will opt for asynchronous responses.
+| Since we are going to return an :ref:`async response <tasks_and_synchrony>`, we also need to make sure we include a callback URI in the scheme - remove this field if choosing synchronous.
 | Finally we'll want to support batching, so the following JSON scheme should suffice
 
 .. code-block:: json
 
     {
-        "callback_uri": <callback_uri>,
+        "callback_uri": <callback_uri>,  # Opt out if using synchronous responses
         "data": {<unique_id1>: {"sepal-length": <float>,
                                 "sepal-width": <float>,
                                 "petal-length": <float>,
@@ -320,6 +322,23 @@ Launch (partial project)
 | From this moment forward we shouldn't use the :ref:`launch` command as a project can and needs to be launched once.
 | If for any reason you wish to relaunch a project (for changing ports for example) you'd have to first :ref:`shutdown` and then :ref:`launch` again.
 
+Opt for Asynchronicity (optional)
+---------------------------------
+
+| In this tutorial, we will use asynchronous responses.
+| If you skip this step and keep following the tutorial you will get the exact same result but with synchronous responses.
+| To enable asynchronous responses, use the :ref:`response` command line call. There is **no** need to restart when changing the response manner.
+
+
+.. code-block:: bash
+
+    $ denzel response --async
+
+.. tip::
+
+    | You can always go back to synchronous responses, for example for synchronous responses with 5 seconds timeout, call ``denzel response --sync --timeout 5.0``.
+
+| Now denzel will make sure responses are returned back to the ``callback_uri``.
 
 Pipeline Methods
 ----------------
@@ -350,7 +369,7 @@ Pipeline Methods
         :return: Data for the the process function
         """
 
-        # callback_uri is needed to sent the responses to
+        # callback_uri is needed to sent the responses to, DELETE this if block for synchronous responses
         if 'callback_uri' not in json_data:
             raise ValueError('callback_uri not supplied')
 
@@ -563,7 +582,7 @@ Pipeline Methods
         :return: Data for the the process function
         """
 
-        # callback_uri is needed to sent the responses to
+        # callback_uri is needed to sent the responses to, DELETE this if block for synchronous responses
         if 'callback_uri' not in json_data:
             raise ValueError('callback_uri not supplied')
 
@@ -652,8 +671,8 @@ Using the API to Predict
 ------------------------
 
 | Now is the time to put denzel into action.
-| To do that, we must first have some URI to receive the responses (remember, we are using :ref:`async responses <tasks_and_synchrony>`).
-| You can do that by using `waithook`_ which is an in browser service for receiving HTTP requests, just what we need - just follow the link, choose a "Path Prefix" (for example ``john_q`` and press "Subscribe".
+| Since we opted for asynchronous responses, we must first have some URI to receive the responses (you can skip the callback URI part if using synchronous responses).
+| You can do that by using `waithook`_ which is an in browser service for receiving HTTP requests, just what we need - just follow the link, choose a "Path Prefix" (for example ``john_q``) and press "Subscribe".
 | Use the link that will be generated for you (http://waithook.com/<chosen_path_prefix>) and keep the browser open as we will receive the responses to the output window.
 | Next we need to make an actual POST request to the :ref:`predict_endpoint` endpoint. We will do that using `curl`_ through the command line.
 
@@ -685,8 +704,9 @@ Using the API to Predict
 
         response = requests.post('http://localhost:8000/predict', json=data)
 
-
-| If the request has passed the :ref:`pipeline_verify_input` method, you should immediately get a response that looks something like (on curl, you'd see it in your prompt, with ``requests`` you'll have it in ``response.json()``):
+| If the request has passed the :ref:`pipeline_verify_input` method, depending on which response manner you chose (sync/async) there are two possible scenarios.
+| On the synchronous scenario, you would simply get the predictions and this is where the flow ends.
+| On the asynchronous scenario, you should immediately get a response that looks something like (on curl, you'd see it in your prompt, with ``requests`` you'll have it in ``response.json()``):
 
 .. code-block:: json
 

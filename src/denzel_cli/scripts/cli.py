@@ -3,9 +3,11 @@ from .. import config
 
 import click
 
+
 @click.group()
 def cli():
     pass
+
 
 # -------- startproject --------
 @cli.command()
@@ -97,3 +99,19 @@ def logworker(live):
 def shell(service):
     """Connect to service bash shell"""
     commands.shell(service)
+
+
+# -------- response --------
+@cli.command()
+@click.option('--sync/--async', required=True, default=True, help='Responses synchronicity')
+@click.option('--timeout', default=5., type=float, show_default=True, help='Sync response timeout in seconds')
+def response(sync, timeout):
+    """Set response manner (sync/async) and sync timeout"""
+
+    if sync is None:
+        raise click.ClickException('Must pass --sync or --async')
+
+    if sync and timeout <= 0:
+        raise click.ClickException('Sync timeout must be greater than 0')
+
+    commands.response(sync, timeout)

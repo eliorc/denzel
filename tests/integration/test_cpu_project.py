@@ -32,6 +32,60 @@ def datadir(pytestconfig):
     return pytestconfig.rootdir.join('tests/assets/')
 
 
+def assert_async():
+    """
+    Assert the functionality of an asynchronous request and response
+    """
+
+    data = {
+        "callback_uri": "http://waithook.com/john_q",
+        "data": {"a123": {"sepal-length": 4.6, "sepal-width": 3.6, "petal-length": 1.0, "petal-width": 0.2},
+                 "b456": {"sepal-length": 6.5, "sepal-width": 3.2, "petal-length": 5.1, "petal-width": 2.0}}
+    }
+    response = requests.post('http://localhost:8000/predict', json=data)
+
+    assert response.status_code == 200
+    response_data = response.json()
+    assert response_data['status'].lower() == 'success'
+
+    task_id = response_data['data']['task_id']
+
+    # Check status endpoint
+    response = requests.get('http://localhost:8000/status/{}'.format(task_id))
+
+    # Wait for prediction
+    start_time = time.time()
+    while response.json()['status'].lower() == 'pending' and time.time() - start_time < 10:
+        response = requests.get('http://localhost:8000/status/{}'.format(task_id))
+        time.sleep(1)
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data['status'].lower() == 'success'
+    assert response_data['result']['a123'] == 'Iris-setosa'
+    assert response_data['result']['b456'] == 'Iris-virginica'
+
+
+def assert_sync():
+    """
+    Assert the functionality of a synchronous request and response
+    """
+
+    data = {
+        "callback_uri": "http://waithook.com/john_q",
+        "data": {"a123": {"sepal-length": 4.6, "sepal-width": 3.6, "petal-length": 1.0, "petal-width": 0.2},
+                 "b456": {"sepal-length": 6.5, "sepal-width": 3.2, "petal-length": 5.1, "petal-width": 2.0}}
+    }
+    response = requests.post('http://localhost:8000/predict', json=data)
+
+    assert response.status_code == 200
+    response_data = response.json()
+
+    assert response_data['a123'] == 'Iris-setosa'
+    assert response_data['b456'] == 'Iris-virginica'
+
+
 # -------- Tests --------
 def test_cpu_project(tmpdir, datadir):
     """
@@ -93,41 +147,24 @@ def test_cpu_project(tmpdir, datadir):
                     if time.time() - start_time > 180:
                         raise TimeoutError('Too long installation phase')
 
-            # Check info endpoint
-            response = requests.get('http://localhost:8000/info')
+                # Check info endpoint
+                response = requests.get('http://localhost:8000/info')
 
-            assert response.status_code == 200
-            assert 'For prediction' in response.text
+                assert response.status_code == 200
+                assert 'For prediction' in response.text
 
-            # Check prediction endpoint
-            data = {
-                "callback_uri": "http://waithook.com/john_q",
-                "data": {"a123": {"sepal-length": 4.6, "sepal-width": 3.6, "petal-length": 1.0, "petal-width": 0.2},
-                         "b456": {"sepal-length": 6.5, "sepal-width": 3.2, "petal-length": 5.1, "petal-width": 2.0}}
-            }
-            response = requests.post('http://localhost:8000/predict', json=data)
+                # Check prediction endpoint - synchronous
+                assert_sync()
 
-            assert response.status_code == 200
-            response_data = response.json()
-            assert response_data['status'].lower() == 'success'
+                # Check prediction endpoint - asynchronous
+                result = runner.invoke(cli.response, args=['--async'])
+                assert result.exit_code == 0
+                assert_async()
 
-            task_id = response_data['data']['task_id']
-
-            # Check status endpoint
-            response = requests.get('http://localhost:8000/status/{}'.format(task_id))
-
-            # Wait for prediction
-            start_time = time.time()
-            while response.json()['status'].lower() == 'pending' and time.time() - start_time < 10:
-                response = requests.get('http://localhost:8000/status/{}'.format(task_id))
-                time.sleep(1)
-
-            response_data = response.json()
-
-            assert response.status_code == 200
-            assert response_data['status'].lower() == 'success'
-            assert response_data['result']['a123'] == 'Iris-setosa'
-            assert response_data['result']['b456'] == 'Iris-virginica'
+                # Revert to synchronous again and check endpoint again
+                result = runner.invoke(cli.response, args=['--sync', '--timeout', '5'])
+                assert result.exit_code == 0
+                assert_sync()
 
         finally:
             with project_dir.as_cwd():
