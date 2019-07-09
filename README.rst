@@ -121,7 +121,5 @@ Development State
 
 | Denzel is supported by `Data Science Group Ltd.`_ and is promised to be kept on open source.
 | Denzel right now is on alpha. This means that it is fully operational and new features and support will be added to it before moving on to a beta release.
-| New features and bug fixes can be viewed in the development `Trello board`_.
 
-.. _`Trello board`: https://trello.com/b/yUTZB4D8/denzel
 .. _`Data Science Group Ltd.`: http://www.datascience.co.il/
