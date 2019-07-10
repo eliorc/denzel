@@ -69,6 +69,17 @@ def launch(api_port, monitor_port):
             else:
                 env_file.write(data_line)
 
+    # Let the user know if using existing image, or creating a new one
+    env_data = utils.read_env()
+    if utils.image_exists(image_name=env_data['image_name'], image_tag=env_data['image_tag']):
+        click.echo('Launching from ', nl=False)
+        click.secho('EXISTING', nl=False, fg=config.Colors.SUCCESS.value)
+        click.echo(' image')
+    else:
+        click.echo('Building ', nl=False)
+        click.secho('NEW', nl=False, fg=config.Colors.NEUTRAL.value)
+        click.echo(' image')
+
     # Create temporary file for the building stage to be deleted by the startup scripts
     with utils.set_status(config.Status.BUILDING, remove=False):
         command = ['docker-compose', 'up', '-d', '--no-recreate']
@@ -150,8 +161,22 @@ def status(live):
 
 
 @utils.verify_location
+def updateosreqs():
+    with utils.set_status(config.Status.UPDATE_OS_REQS):
+        # Restart
+        restart()
+
+
+@utils.verify_location
+def updatepipreqs():
+    with utils.set_status(config.Status.UPDATE_PIP_REQS):
+        # Restart
+        restart()
+
+
+@utils.verify_location
 def updatereqs():
-    with utils.set_status(config.Status.BUILDING, remove=False):
+    with utils.set_status(config.Status.UPDATE_PIP_REQS), utils.set_status(config.Status.UPDATE_OS_REQS):
         # Restart
         restart()
 

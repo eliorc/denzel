@@ -4,7 +4,7 @@ SERVICES = ['api', 'denzel', 'monitor', 'redis']
 SERVICES_WITH_EXPOSED_PORT = ['api', 'monitor']
 
 DENZEL_IMAGE_NAME = 'denzel'
-DENZEL_IMAGE_TAG = '1.0.1'
+DENZEL_IMAGE_TAG = '1.1.0'
 
 DENZEL_IMAGE_SERVICES = ['api', 'denzel', 'monitor']
 
@@ -20,13 +20,18 @@ MONITOR_PORT = 5555
 
 
 class Status(Enum):
+    BUILDING = 'building'
+    UPDATE_PIP_REQS = 'updatepipreqs'
+    UPDATE_OS_REQS = 'updateosreqs'
+
     UP = 'UP'
     PIP = 'PIP INSTALLING...'
-    BUILDING = 'building'
+    OS = 'OS COMMANDS...'
     NA = 'UNAVAILABLE'
     ERROR = 'ERROR'
     LOADING = 'LOADING...'
     DOWN = 'DOWN'
+
 
 # Colors
 class Colors(Enum):

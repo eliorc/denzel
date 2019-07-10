@@ -1,12 +1,15 @@
 import socket
-from contextlib import contextmanager, suppress
-from py._path.local import LocalPath
 import time
 import shutil
+from contextlib import contextmanager, suppress
+from py._path.local import LocalPath
 
 import requests
 import pytest
+import docker
+
 from click.testing import CliRunner
+from denzel_cli import utils
 from denzel_cli.scripts import cli
 from denzel_cli import config as cli_config
 from .. import config
@@ -135,7 +138,6 @@ def test_cpu_project(tmpdir, datadir):
                 start_time = time.time()
 
                 while True:
-
                     result = runner.invoke(cli.status)
                     assert result.exit_code == 0
 
@@ -144,7 +146,7 @@ def test_cpu_project(tmpdir, datadir):
                     else:
                         break  # All is up
 
-                    if time.time() - start_time > 180:
+                    if time.time() - start_time > 240:
                         raise TimeoutError('Too long installation phase')
 
                 # Check info endpoint
@@ -165,6 +167,40 @@ def test_cpu_project(tmpdir, datadir):
                 result = runner.invoke(cli.response, args=['--sync', '--timeout', '5'])
                 assert result.exit_code == 0
                 assert_sync()
+
+                # -------- Check updateenvreqs --------
+                containers_names = utils.get_containers_names()
+                client = docker.from_env()
+                denzel_container = client.containers.get(containers_names['denzel'])
+
+                # Assert htop non-existent
+                status_code, output = denzel_container.exec_run('htop')
+                assert b'OCI runtime exec failed' in output
+
+                # updateenvreqs
+                shutil.copy(src='{}/requirements.sh'.format(datadir), dst=project_dir + '/requirements.sh')
+                result = runner.invoke(cli.updateosreqs)
+                assert result.exit_code == 0
+
+                # Wait till all are up
+                start_time = time.time()
+
+                while True:
+                    result = runner.invoke(cli.status)
+                    assert result.exit_code == 0
+
+                    if str(result.output).count('UP') < 5:
+                        time.sleep(2)
+                    else:
+                        break  # All is up
+
+                    if time.time() - start_time > 180:
+                        raise TimeoutError('Too long installation phase')
+
+                # Assert htop was installed
+                status_code, output = denzel_container.exec_run('htop --version')
+                assert status_code == 0
+                assert b'Released under the GNU GPL' in output
 
         finally:
             with project_dir.as_cwd():

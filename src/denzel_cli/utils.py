@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from collections import defaultdict
 
 import docker
+from docker.errors import ImageNotFound
 import click
 import requests
 from . import config
@@ -22,6 +23,17 @@ def verify_location(func):
         return func(*args, **kwargs)
 
     return command
+
+
+def image_exists(image_name, image_tag):
+    """ Checks whether a docker image already exists """
+
+    client = docker.from_env()
+    try:
+        client.images.get('{image_name}:{image_tag}'.format(image_name=image_name, image_tag=image_tag))
+        return True
+    except ImageNotFound:
+        return False
 
 
 @verify_location
@@ -87,7 +99,6 @@ def set_status(status, service='', remove=True):
     try:
         yield status_file
     finally:
-
         if remove and os.path.exists(status_file):
             os.remove(status_file)
 

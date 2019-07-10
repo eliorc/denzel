@@ -14,18 +14,20 @@ Command Line Interface (CLI)
       --help  Show this message and exit.
 
     Commands:
-      launch        Builds and starts all services
-      logs          Show service logs
-      logworker     Show worker log
-      response      Set response manner (sync/async) and sync timeout
-      restart       Restart services
-      shell         Connect to service bash shell
-      shutdown      Stops and deletes all services
-      start         Start services
-      startproject  Builds the denzel project skeleton
-      status        Examine status of services
-      stop          Stop services
-      updatereqs    Update service according to requirements.txt
+      launch         Builds and starts all services
+      logs           Show service logs
+      logworker      Show worker log
+      response       Set response manner (sync/async) and sync timeout
+      restart        Restart services
+      shell          Connect to service bash shell
+      shutdown       Stops and deletes all services
+      start          Start services
+      startproject   Builds the denzel project skeleton
+      status         Examine status of services and worker
+      stop           Stop services
+      updateosreqs   Run shell commands from requirements.sh on all services
+      updatepipreqs  Update services according to requirements.txt
+      updatereqs     Update services using requirements.txt and requirements.sh
 
 
 | For command specific help you can follow a command with the ``--help`` flag (ex. ``denzel launch --help``)
@@ -348,13 +350,41 @@ Examples
         $ denzel shell --service api
 
 
-.. _updatereqs:
+.. _updateosreqs:
+
+----------------
+``updateosreqs``
+----------------
+
+Usage: ``denzel updateosreqs``
+
+Run shell commands from ``requirements.sh``. This command uses ``/bin/bash`` for execution and treats the file as a bash script.
+Notice, that due to docker and ``apt`` caching issues, if you have a ``apt-get install`` command, make sure you precede it with ``update``, e.g. ``apt-get update && apt-get install <package-name>``.
+There is no need to use ``sudo``, these commands will run as root.
+
+.. note::
+
+    Every time you call ``updateosreqs``, all of the contents of ``requirements.sh`` will be executed.
+
+++++++++
+Examples
+++++++++
+
+Install ``htop`` command on all services
+
+.. code-block:: bash
+
+    $ echo "apt-get update && apt-get install htop" >> requirements.sh
+    $ denzel updateosreqs
+
+
+.. _updatepipreqs:
 
 --------------
-``updatereqs``
+``updatepipreqs``
 --------------
 
-Usage: ``denzel updatereqs``
+Usage: ``denzel updatepipreqs``
 
 Update services according to ``requirements.txt``. This command always uses the pip ``--upgrade`` flag, so requirements will always be updated to the latest version.
 If you wish to install a specific version, specify it in the ``requirements.txt`` file. This command will initiate a restart so updates will apply.
@@ -364,6 +394,26 @@ Examples
 ++++++++
 
 Update the Python packages using the ``requirements.txt`` file
+
+    .. code-block:: bash
+
+        $ denzel updatepipreqs
+
+.. _updatereqs:
+
+--------------
+``updatereqs``
+--------------
+
+Usage: ``denzel updatereqs``
+
+Updates services according to ``requirements.txt`` and ``requirements.sh``, equivalent to calling ``updatepipreqs`` and ``updateosreqs`` consecutively, but faster.
+
+++++++++
+Examples
+++++++++
+
+Update the Python packages using ``requirements.txt`` and execute shell script ``requirements.sh``
 
     .. code-block:: bash
 
