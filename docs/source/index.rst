@@ -58,7 +58,7 @@ Showcase
 
        # Verify data structure
        if not isinstance(json_data['data'], dict):
-           raise ValueError('jsondata["data"] must be a mapping between unique id and features')
+           raise ValueError('json_data["data"] must be a mapping between unique id and features')
 
        # Verify data scheme
        for unique_id, features in json_data['data'].items():

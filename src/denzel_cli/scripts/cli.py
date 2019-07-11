@@ -65,10 +65,24 @@ def status(live):
     commands.status(live)
 
 
-# -------- updatereqs --------
+# -------- updateosreqs --------
+@cli.command()
+def updateosreqs():
+    """Run shell commands from requirements.sh on all services"""
+    commands.updateosreqs()
+
+
+# -------- updatepipreqs --------
+@cli.command()
+def updatepipreqs():
+    """Update services according to requirements.txt"""
+    commands.updatepipreqs()
+
+
+# -------- updatepipreqs --------
 @cli.command()
 def updatereqs():
-    """Update services according to requirements.txt"""
+    """Update services using requirements.txt and requirements.sh"""
     commands.updatereqs()
 
 

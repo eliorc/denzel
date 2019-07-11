@@ -15,7 +15,7 @@ Prerequisites
     .. code-block:: bash
 
         $ docker --version
-        Docker version 18.06.1-ce, build e68fc7a
+        Docker version 18.09.7, build 2d0083d
 
 2. `Install docker-compose`_ > 1.19.0, verify its installation by running
 
@@ -144,13 +144,15 @@ Starting a denzel Project
     |   |-- denzel.sh
     |   `-- monitor.sh
     |-- logs
-    `-- requirements.txt  <-------------------------- Requirements
+    |-- requirements.sh  <--------------------------- OS requirements
+    `-- requirements.txt  <-------------------------- PIP requirements
 
 
 | To make denzel fully operational, the only files we'll ever edit are:
 | 1. ``requirements.txt`` - Here we'll store all the pip packages our system needs
-| 2. ``app/assets/info.txt`` - Text file that contains deployment information about our model and system
-| 3. ``app/logic/pipeline.py`` - Here we will edit the body of the :doc:`pipeline`
+| 2. ``requirements.sh`` - Here we'll write all the shell commands that are necessary for installations and environment settings e.g ``apt-install``, ``wget`` etc. (if necessary)
+| 3. ``app/assets/info.txt`` - Text file that contains deployment information about our model and system
+| 4. ``app/logic/pipeline.py`` - Here we will edit the body of the :doc:`pipeline`
 |
 | These steps, are exactly what this tutorial is all about.
 
@@ -164,6 +166,18 @@ Starting a denzel Project
 
 Requirements
 ------------
+
+| Requirements can be split into two categories, pip requirements ans OS (operating system) requirements.
+| The pip requirements are managed through the ``requirements.txt`` file and the :ref:`updatepipreqs` command, while the OS requirements are managed through the bash script ``requirements.sh`` and the :ref:`updateosreqs` command.
+
+.. tip::
+
+    If you wish to update both requirements (e.g. you've edited both ``requirements.txt`` and ``requirements.sh``), you can call :ref:`updatereqs` to initiate a universal update, where both PIP and OS update will be made.
+    This is equivalent to calling :ref:`updatepipreqs` and :ref:`updateosreqs` consecutively, but faster.
+
+^^^^^^^^^^^^^^^^
+PIP Requirements
+^^^^^^^^^^^^^^^^
 
 | When we've built our toy model, we used ``scikit-learn`` so before anything we want to specify this requirement in the ``requirements.txt`` file.
 | Open your favorite file editor, and append ``scikit-learn``, ``numpy`` and ``scipy`` as requirements - don't forget to leave a blank line in the end.
@@ -182,6 +196,14 @@ Requirements
 
 
 | Take heed to the comment at the top of the file. Keep your system as lean as possible using light packages and operations in the pipeline methods.
+
+
+^^^^^^^^^^^^^^^
+OS Requirements
+^^^^^^^^^^^^^^^
+
+| Sometimes you might need some OS related installations. Denzel runs on a containerized Ubuntu, so all changes you want to apply to the OS can be done by shell commands on ``requirements.sh``.
+| For example you might want to use ``wget`` to fetch some file from the web or ``apt-install`` some dependencies. In many you won't need any alterations to the OS, like in this tutorial, so there is no need to edit the ``requirements.sh`` file.
 
 .. _`api_interface`:
 
@@ -254,7 +276,7 @@ Launch (partial project)
 | In an ideal scenario, we would launch a project only after we have completed all necessary tasks for a full deployment.
 | For guidance and simplicity sake of this tutorial, we will launch a partial project and complete tasks gradually.
 |
-| What we have now is a skeleton, an editted ``info.txt`` and ``requirements.txt`` files and we can launch our API, without the functionality of the :ref:`predict_endpoint` endpoint (yet).
+| What we have now is a skeleton, an edited ``info.txt`` and ``requirements.txt`` files and we can launch our API, without the functionality of the :ref:`predict_endpoint` endpoint (yet).
 | Inside project directory run:
 
 .. code-block:: bash
@@ -309,7 +331,7 @@ Launch (partial project)
 
 | When all the installing is done and everything is ready, you'll see all the statuses change to ``UP`` with an additional line ``Worker: worker@iris_classifier - UP`` indicating the worker is ready.
 | If you want to see the messages printed out throughout the installation, you can use the :ref:`logs` command.
-| At any time during the lifetime of your project, if you want to add more pip packages, just insert them to the ``requirements.txt`` file and use the :ref:`updatereqs` command.
+| At any time during the lifetime of your project, if you want to add more pip packages, just insert them to the ``requirements.txt`` file and use the :ref:`updatepipreqs` command.
 
 .. tip::
 
@@ -379,7 +401,7 @@ Pipeline Methods
 
         # Verify data structure
         if not isinstance(json_data['data'], dict):
-            raise ValueError('jsondata["data"] must be a mapping between unique id and features')
+            raise ValueError('json_data["data"] must be a mapping between unique id and features')
 
         # Verify data scheme
         for unique_id, features in json_data['data'].items():
@@ -592,7 +614,7 @@ Pipeline Methods
 
         # Verify data structure
         if not isinstance(json_data['data'], dict):
-            raise ValueError('jsondata["data"] must be a mapping between unique id and features')
+            raise ValueError('json_data["data"] must be a mapping between unique id and features')
 
         # Verify data scheme
         for unique_id, features in json_data['data'].items():
